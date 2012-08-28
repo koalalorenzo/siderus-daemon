@@ -1,9 +1,7 @@
 #!/usr/bin/python
 # -*- coding=utf-8 -*-
+#   Copyright 2009, 2010, 2011, 2012, 2013 Lorenzo Setale < koalalorenzo@gmail.com >
 
-import re
-import urllib
-import random
 import socket
 import json
 
@@ -19,7 +17,7 @@ class Message(object):
 		self.__fingerprint = None
 		self.__hash_md5 = None
 		
-		self.socket = None
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.__raw_message = ""
 		self.__encoded_message = ""
 
