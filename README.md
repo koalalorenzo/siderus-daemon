@@ -1,6 +1,7 @@
 # Siderus
-Siderus is a peer-to-peer network and is made by a daemon and by a group of libraries 
-that allow applications to communicate through the decentralized network.
+Siderus is project that aim to create a peer-to-peer network made by applications. It works with a few libraries and a daemon to help developers to make python applications p2p without efforts.
+
+This project and the code is in pre-alpha and is not usable right now.
 
 ## Main Features
 * It works both on IPv4 and IPv6 connections
