@@ -94,8 +94,14 @@ class Message(object):
 		""" This function send the message via the socket. """
 		return
 
-		
 	def verify_gpg(self):
 		""" This function verify the message with a gpg key. """
 		#TODO
 		return
+
+	def is_corrupted(self):
+		""" This function verify hashes to check if the message is corrupted or not """
+		msg_hash = self.__return_hash()
+		if self.__dict_message['hash'] == msg_hash:
+			return False
+		return True
