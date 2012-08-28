@@ -25,8 +25,7 @@ class Message(object):
 		self.cripted = cripted
 		self.fingerprint = fingerprint
 		
-		#self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #TCP connection
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP connection
+		self.socket = None
 		
 		self.__string_message = ""
 		self.__dict_message = ""
@@ -68,13 +67,15 @@ class Message(object):
 				
 	def sign_message(self, fingerprint):
 		""" This function sign with a gpg key, the message. """
-		#TODO
+		#TODO gnupg
 		return
 
 
 	def receive(self):
 		""" This function receive the message via the socket. """
 		port = from_addr_to_dict(self.destination)['port']
+
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP connection
 		
 		self.__string_message = ""
 		
@@ -89,14 +90,32 @@ class Message(object):
 	        self.__string_message += data
 
 		self.__decode_message()
+		self.socket.close()
+		self.socket = None
+		
+	def __get_list_splitted_message(self):
+		""" This function split the message to fit the 512 bytes to send each time """	
+		chunks = list()
+		for i in range(0, len(self.__string_message), 512):
+			chunks.append(self.__string_message[i:i+512])
+		return chunks
 		
 	def send(self):
 		""" This function send the message via the socket. """
-		return
-
+		if not self.__string_message: return
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		destination_dict = from_addr_to_dict(self.destination)
+		
+		pieces = self.__get_list_splitted_message()
+		for pice in pieces:
+			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )
+		
+		self.socket.close()
+		self.socket = None
+		
 	def verify_gpg(self):
 		""" This function verify the message with a gpg key. """
-		#TODO
+		#TODO gnupg
 		return
 
 	def is_corrupted(self):
