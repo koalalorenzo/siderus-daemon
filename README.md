@@ -21,4 +21,4 @@ and applications. It could be considered as a
 "[Mercury]( http://en.wikipedia.org/wiki/Mercury_%28mythology%29 )" :D. Locally, each daemon 
 is connected to some applications. An application receives messages directly from the daemon.
 
-When a message arrives from another node, it is first received by the daemon. The daemon verifies the message and the origin, then sends it to the specific application addressed. This happens also when an application has to send a message: messages to send are collected by the daemon, and then are sent to the destination.
+When a message arrives from another node, it is first received by the daemon. The daemon verifies the message and the origin, then sends it to the specific application addressed. This happens also when an application has to send a message: messages to send are collected by the daemon, and then are sent to the remote destination/node.
