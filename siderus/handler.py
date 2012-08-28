@@ -14,7 +14,7 @@ class Handler(object):
 		the app is not open and is not listening, but the message is 
 		saved and sent when it will be available ).
 	"""
-	def __init__():
+	def __init__(self):
 		self.connections = list()
 		self.message_cache = list()
 		self.applications = list()

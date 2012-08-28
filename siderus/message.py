@@ -17,7 +17,7 @@ class Message(object):
 		This is the message class that receives and sends the message.
 		Each message is a json dictionary, sometimes it is encrypted for security reasons.
 	"""
-	def __init__(content=None, destination=None, origin=None, cripted=False, fingerprint=None):
+	def __init__(self, content=None, destination=None, origin=None, cripted=False, fingerprint=None):
 		self.content = content
 		self.destination = destination
 		self.origin = origin
@@ -30,22 +30,18 @@ class Message(object):
 		self.__string_message = ""
 		self.__dict_message = ""
 		
+		self.__sent_or_received = False
+		
 	def __decode_message(self):
 		""" This function "translate" the message from string to json """
-		if self.__dict_message: return
-		if not self.__string_message: return
-		
-		self.__dict_message = json.loads(self.__string_message)
-		self.origin = self.__dict_message['origin']
-		self.destination = self.__dict_message['destination']
-		self.content = zlib.decompress(str(self.__dict_message['content']).decode("base64"))
+		self.__dict_message = json.loads(str(self.__string_message))
+		self.origin = str(self.__dict_message['origin'])
+		self.destination = str(self.__dict_message['destination'])
+		self.content = str(zlib.decompress(str(self.__dict_message['content']).decode("base64")))
 		
 	def __encode_message(self):
 		""" This function "translate" the message from json to string """
-		if self.__string_message: return
-		if not self.__dict_message: return
-		
-		self.__string_message = json.loads(self.__dict_message)
+		self.__string_message = json.dumps(self.__dict_message)
 		
 	def __return_hash(self):
 		""" this function returns the hash to verify the content integrity """
@@ -59,11 +55,11 @@ class Message(object):
 		if not self.origin: return 
 		
 		self.__dict_message = dict()
-		self.__dict_message['origin'] = self.origin
-		self.__dict_message['destination'] = self.destination
-		self.__dict_message['content'] = str(zlib.compress(content,9)).encode("base64")
+		self.__dict_message['origin'] = str(self.origin)
+		self.__dict_message['destination'] = str(self.destination)
+		self.__dict_message['content'] = str(str(zlib.compress(self.content,9)).encode("base64"))
 		
-		self.__dict_message['hash'] = self.__return_hash()
+		self.__dict_message['hash'] = str(self.__return_hash())
 				
 	def sign_message(self, fingerprint):
 		""" This function sign with a gpg key, the message. """
@@ -73,11 +69,12 @@ class Message(object):
 
 	def receive(self):
 		""" This function receive the message via the socket. """
-		port = from_addr_to_dict(self.destination)['port']
-
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP connection
+		if self.__sent_or_received: return
 		
-		self.__string_message = ""
+		port = from_addr_to_dict(self.destination)['port']
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #UDP connection
+		
+		cache = ""
 		
 		self.socket.bind(('', port))
 		self.socket.listen(1)
@@ -87,11 +84,13 @@ class Message(object):
 		while True:
 			data = second.recv(512)
 			if not data: break
-	        self.__string_message += data
-
+			cache += data
+		
+		self.__string_message = cache
 		self.__decode_message()
 		self.socket.close()
 		self.socket = None
+		self.__sent_or_received = True
 		
 	def __get_list_splitted_message(self):
 		""" This function split the message to fit the 512 bytes to send each time """	
@@ -102,16 +101,23 @@ class Message(object):
 		
 	def send(self):
 		""" This function send the message via the socket. """
-		if not self.__string_message: return
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		if self.__sent_or_received: return
+		
+		self.__build_message_to_send()
+		self.__encode_message()
+		
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		destination_dict = from_addr_to_dict(self.destination)
 		
+		self.socket.connect((destination_dict['addr'], destination_dict['port']))
+				
 		pieces = self.__get_list_splitted_message()
 		for pice in pieces:
-			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )
-		
+			self.socket.send( pice )
+			
 		self.socket.close()
 		self.socket = None
+		self.__sent_or_received = True
 		
 	def verify_gpg(self):
 		""" This function verify the message with a gpg key. """
@@ -124,3 +130,6 @@ class Message(object):
 		if self.__dict_message['hash'] == msg_hash:
 			return False
 		return True
+		
+	def __dict__(self):
+		return self.__dict_message
