@@ -7,3 +7,7 @@ __version__ = "0.4"
 __author__ = "Lorenzo Setale ( http://www.setale.me/ )"
 __license__ = "See: http://creativecommons.org/licenses/by-nd/3.0/ "
 __copyright__ = "Copyright (c) 2009, 2010, 2011, 2012, 2013 Lorenzo Setale"
+
+import common
+import handler
+import message
