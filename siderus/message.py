@@ -27,6 +27,7 @@ class Message(object):
 		
 		#self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #TCP connection
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP connection
+		
 		self.__string_message = ""
 		self.__dict_message = ""
 		
@@ -65,18 +66,34 @@ class Message(object):
 		
 		self.__dict_message['hash'] = self.__return_hash()
 				
+	def sign_message(self, fingerprint):
+		""" This function sign with a gpg key, the message. """
+		#TODO
+		return
+
+
 	def receive(self):
 		""" This function receive the message via the socket. """
-		return
+		port = from_addr_to_dict(self.destination)['port']
+		
+		self.__string_message = ""
+		
+		self.socket.bind(('', port))
+		self.socket.listen(1)
+		
+		second, addr = self.socket.accept()
+		#These function should be executed in a different thread!
+		while True:
+			data = second.recv(512)
+			if not data: break
+	        self.__string_message += data
+
+		self.__decode_message()
 		
 	def send(self):
 		""" This function send the message via the socket. """
 		return
 
-	def sign_message(self, fingerprint):
-		""" This function sign with a gpg key, the message. """
-		#TODO
-		return
 		
 	def verify_gpg(self):
 		""" This function verify the message with a gpg key. """
