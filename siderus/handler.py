@@ -2,7 +2,7 @@
 # -*- coding=utf-8 -*-
 #   Copyright 2009, 2010, 2011, 2012, 2013 Lorenzo Setale < koalalorenzo@gmail.com >
 
-from siderus import Message
+from siderus.message import Message
 
 class Handler(object):
 	"""	

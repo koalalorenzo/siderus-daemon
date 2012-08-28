@@ -23,7 +23,7 @@ class Message(object):
 
 		self.origin = None
 		
-    def __encode_message(self):
+	def __encode_message(self):
 		return
 		
 	def __decode_message(self):
@@ -36,10 +36,10 @@ class Message(object):
 	def verify_gpg(self):
 		""" This function verify the message with a gpg key. """
 		
-    def receive(self):
-    	""" This function receive the message via the socket. """
-    	return
-    	
-    def send(self):
-	    """ This function send the message via the socket. """
-	    return
+	def receive(self):
+		""" This function receive the message via the socket. """
+		return
+		
+	def send(self):
+		""" This function send the message via the socket. """
+		return
