@@ -32,24 +32,12 @@ class Message(object):
 		
 		self.__sent_or_received = False
 		
-	def __decode_message(self):
+	def decode_message(self):
 		""" This function "translate" the message from string to json """
 		self.__dict_message = json.loads(str(self.__string_message))
 		self.origin = str(self.__dict_message['origin'])
 		self.destination = str(self.__dict_message['destination'])
 		self.content = str(zlib.decompress(str(self.__dict_message['content']).decode("base64")))
-		
-	def decode(self):
-		return self.decode()
-	
-	def __encode_message(self):
-		""" This function "translate" the message from json to string """
-		self.__string_message = json.dumps(self.__dict_message)
-		
-	def __return_hash(self):
-		""" this function returns the hash to verify the content integrity """
-		hash = md5(self.content)
-		return str(hash.hexdigest())
 
 	def __build_message_to_send(self):
 		""" This function build the self.__dict_message to send """
@@ -63,7 +51,17 @@ class Message(object):
 		self.__dict_message['content'] = str(str(zlib.compress(self.content,9)).encode("base64"))
 		
 		self.__dict_message['hash'] = str(self.__return_hash())
-				
+		
+	def encode_message(self):
+		""" This function "translate" the message from json to string """
+		self.__build_message_to_send()
+		self.__string_message = json.dumps(self.__dict_message)
+		
+	def __return_hash(self):
+		""" this function returns the hash to verify the content integrity """
+		hash = md5(self.content)
+		return str(hash.hexdigest())
+			
 	def sign_message(self, fingerprint):
 		""" This function sign with a gpg key, the message. """
 		#TODO gnupg
@@ -98,7 +96,7 @@ class Message(object):
 	def receive_and_decode(self):
 		""" This function receive the message via socket and decode it """
 		self.receive()
-		self.__decode_message()
+		self.decode_message()
 		self.__sent_or_received = True
 		
 	def __get_list_splitted_message(self):
@@ -110,10 +108,9 @@ class Message(object):
 		
 	def send(self):
 		""" This function send the message via the socket. """
-		if self.__sent_or_received: return
+		if self.__sent_or_received: return #RAISE
 		
-		self.__build_message_to_send()
-		self.__encode_message()
+		self.encode_message()
 		
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
@@ -128,9 +125,7 @@ class Message(object):
 
 		data, addr = self.socket.recvfrom(512)
 		if data != "OK":
-			print "NOT VALID MESSAGE"
-		else:
-			print "Message Sent"
+			return # RAISE 
 
 		self.socket.close()
 		self.socket = None

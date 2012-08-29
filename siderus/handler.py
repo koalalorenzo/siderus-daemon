@@ -27,5 +27,5 @@ class Handler(object):
 			message = Message()
 			message.receive()
 			#thread this process:
-			self.analyze(message)
+			self.decode(message)
 		
