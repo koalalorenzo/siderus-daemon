@@ -68,7 +68,7 @@ class Message(object):
 
 
 	def receive(self):
-		""" This function receive the message via the socket. """
+		""" This function receive the message via the socket but do not decode it """
 		if self.__sent_or_received: return
 		
 		port = from_addr_to_dict(self.destination)['port']
@@ -84,14 +84,17 @@ class Message(object):
 		while True:
 			#data = second.recv(512)
 			data = self.socket.recv(512)
-			print "R", data
 			if not data: break
 			cache += data
 		
 		self.__string_message = cache
-		self.__decode_message()
 		self.socket.close()
 		self.socket = None
+	
+	def receive_and_decode(self):
+		""" This function receive the message via socket and decode it """
+		self.receive()
+		self.__decode_message()
 		self.__sent_or_received = True
 		
 	def __get_list_splitted_message(self):
@@ -116,7 +119,8 @@ class Message(object):
 		pieces = self.__get_list_splitted_message()
 		for pice in pieces:
 			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )
-			
+		
+		#Message empty to stop the message
 		self.socket.sendto( "", (destination_dict['addr'], destination_dict['port']) )
 		self.socket.close()
 		self.socket = None
