@@ -72,17 +72,19 @@ class Message(object):
 		if self.__sent_or_received: return
 		
 		port = from_addr_to_dict(self.destination)['port']
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #UDP connection
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		
 		cache = ""
 		
 		self.socket.bind(('', port))
-		self.socket.listen(1)
+		#self.socket.listen(1)
 		
-		second, addr = self.socket.accept()
+		#second, addr = self.socket.accept()
 		#These function should be executed in a different thread!
 		while True:
-			data = second.recv(512)
+			#data = second.recv(512)
+			data = self.socket.recv(512)
+			print "R", data
 			if not data: break
 			cache += data
 		
@@ -106,15 +108,16 @@ class Message(object):
 		self.__build_message_to_send()
 		self.__encode_message()
 		
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
 		
-		self.socket.connect((destination_dict['addr'], destination_dict['port']))
+		#self.socket.connect((destination_dict['addr'], destination_dict['port']))
 				
 		pieces = self.__get_list_splitted_message()
 		for pice in pieces:
-			self.socket.send( pice )
+			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )
 			
+		self.socket.sendto( "", (destination_dict['addr'], destination_dict['port']) )
 		self.socket.close()
 		self.socket = None
 		self.__sent_or_received = True
