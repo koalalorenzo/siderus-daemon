@@ -39,6 +39,9 @@ class Message(object):
 		self.destination = str(self.__dict_message['destination'])
 		self.content = str(zlib.decompress(str(self.__dict_message['content']).decode("base64")))
 		
+	def decode(self):
+		return self.decode()
+	
 	def __encode_message(self):
 		""" This function "translate" the message from json to string """
 		self.__string_message = json.dumps(self.__dict_message)
@@ -83,9 +86,10 @@ class Message(object):
 		#These function should be executed in a different thread!
 		while True:
 			#data = second.recv(512)
-			data = self.socket.recv(512)
+			data, addrport = self.socket.recvfrom(512)
 			if not data: break
 			cache += data
+		self.socket.sendto("OK", addrport)
 		
 		self.__string_message = cache
 		self.socket.close()
@@ -119,9 +123,15 @@ class Message(object):
 		pieces = self.__get_list_splitted_message()
 		for pice in pieces:
 			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )
-		
 		#Message empty to stop the message
 		self.socket.sendto( "", (destination_dict['addr'], destination_dict['port']) )
+
+		data, addr = self.socket.recvfrom(512)
+		if data != "OK":
+			print "NOT VALID MESSAGE"
+		else:
+			print "Message Sent"
+
 		self.socket.close()
 		self.socket = None
 		self.__sent_or_received = True
