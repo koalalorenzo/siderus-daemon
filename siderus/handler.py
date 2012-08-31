@@ -9,13 +9,13 @@ from siderus.common import from_addr_to_dict
 from siderus.common import return_network_publicip
 from siderus.common import is_local_address
 
-DAEMON_REM_CONN_REQ     = 0
-DAEMON_REM_CONN_REF     = 1
-DAEMON_REM_CONN_SHR_ASK = 2
-DAEMON_REM_CONN_SHR_GOT = 3
+DAEMON_NODE_CONN_REQ     = 0
+DAEMON_NODE_CONN_REF     = 1
+DAEMON_NODE_CONN_SHR_ASK = 2
+DAEMON_NODE_CONN_SHR_GOT = 3
 
-DAEMON_LOC_CONN_REQ     = 0
-DAEMON_LOC_CONN_REF     = 1
+DAEMON_APP_CONN_REQ      = 4
+DAEMON_APP_CONN_REF      = 5
 
 class DaemonHandler(object):
 	"""	
