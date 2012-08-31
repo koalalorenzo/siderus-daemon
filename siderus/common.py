@@ -55,7 +55,7 @@ def from_dict_to_addr(dict_addr):
 		The dict_addr MUST be filled like this:
 		{ "addr": "10.0.0.2", "port": 52125, "app": "application" }
 	"""
-	return "%s:%s:%s" % ( dict_addr['app'], dict_addr['addr'], dict_addr['port'] )
+	return "%s@%s:%s" % ( dict_addr['app'], dict_addr['addr'], dict_addr['port'] )
 
 def is_local_address(raw_address):
 	""" This function returns True if the address is pointing to localhost """
