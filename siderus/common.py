@@ -23,7 +23,6 @@ def return_subnet_localip():
 	sockcon.close()
 	return ip
 	
-
 def get_random_port(exclude_list=None):
 	""" This function returns a random port between 49152 and 65535 """
 	random.seed()
@@ -80,3 +79,19 @@ def return_daemon_address(ip_address):
 	
 	return from_dict_to_addr(dict_addr)
 	
+def return_my_daemon_address(public=True):
+	""" This function return the daemon address. """
+	if public:
+		address = return_network_publicip()
+	else:
+		address = return_subnet_localip()
+	return return_daemon_address(address)
+	
+def return_daemon_address_by_giving_address(address):
+	""" This functions return the daemon address by giving a Siderus address. """
+	
+	dict_addr = from_addr_to_dict(address)
+	dict_addr["app"] = "daemon"
+	dict_addr["port"] = 52125
+	
+	return from_dict_to_addr(dict_addr)
