@@ -8,6 +8,7 @@ import zlib
 from hashlib import md5
 
 from siderus.common import from_addr_to_dict
+from siderus.common import is_local_address
 
 class Message(object):
 	""" 
@@ -111,13 +112,15 @@ class Message(object):
 		
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
-		
-		#self.socket.connect((destination_dict['addr'], destination_dict['port']))
-				
+
+		if not is_local_address(self.destination):
+			# If the destination is remote, send it to the Daemon
+			destination_dict['port'] = 52125 
+			
 		pieces = self.__get_list_splitted_message()
 		for pice in pieces:
 			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )
-		#Message empty to stop the message
+		#Message empty to stop it
 		self.socket.sendto( "", (destination_dict['addr'], destination_dict['port']) )
 
 		data, addr = self.socket.recvfrom(512)
