@@ -57,6 +57,27 @@ class DaemonHandler(object):
 		message.send()
 		self.connections.pop(self.connections.index(daemon_address))
 		
+	def ask_connections(self, address):
+		""" This functions "share" connections with another node """
+		
+		message = Message(destination=address, origin=self.address)
+		message.content = { "intent": DAEMON_NODE_CONN_SHR_ASK }
+		message.send()
+		
+	def send_connections(self, address):
+		""" This functions "share" connections with another node """
+		
+		message = Message(destination=address, origin=self.address)
+		message.content = {
+							"intent": DAEMON_NODE_CONN_SHR_ANS, 
+							"connections": self.connections
+						  }
+		message.send()
+
+	self.__connect_to_nodes(self, nodes):
+		for node in nodes:
+			self.connect(node)
+	
 	def __analyze_message_from_remote_app(self, message):
 		ip_address = from_dict_to_addr(message.origin)['addr'] 
 		daemon_address = return_daemon_address(ip_address)
@@ -67,10 +88,20 @@ class DaemonHandler(object):
 
 		elif message.content['intent'] == DAEMON_NODE_CONN_REF:
 			self.connections.pop(self.connections.index(daemon_address))
-					
+		
+		elif message.content['intent'] == DAEMON_NODE_CONN_SHR_ASK:
+			self.send_connections(daemon_address)
+		
+		elif message.content['intent'] == DAEMON_NODE_CONN_SHR_ANS:
+			self.__connect_to_nodes(message.content['connections'])
+		
+		else:
+			print "What are you doing? -", message.content
+			
 		return
 		
 	def __analyze_message_from_local_app(self, message):
+		# Requestes arrived from local applications, es: list connections, connect, disconnect
 		return
 		
 	def __forward_message(self, received_message):
