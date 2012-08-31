@@ -6,16 +6,19 @@ from siderus.message import Message
 
 from siderus.common import from_dict_to_addr
 from siderus.common import from_addr_to_dict
-from siderus.common import return_network_publicip
+from siderus.common import return_my_daemon_address
 from siderus.common import is_local_address
+
 
 DAEMON_NODE_CONN_REQ     = 0
 DAEMON_NODE_CONN_REF     = 1
 DAEMON_NODE_CONN_SHR_ASK = 2
-DAEMON_NODE_CONN_SHR_GOT = 3
+DAEMON_NODE_CONN_SHR_ANS = 3
 
 DAEMON_APP_CONN_REQ      = 4
 DAEMON_APP_CONN_REF      = 5
+DAEMON_APP_CONN_LST_ASK  = 6
+DAEMON_APP_CONN_LST_ANS  = 7
 
 class DaemonHandler(object):
 	"""	
@@ -27,20 +30,56 @@ class DaemonHandler(object):
 		the app is not open and is not listening, but the message is 
 		saved and sent when it will be available ).
 	"""
-	def __init__(self):
+	def __init__(self, address=None):
 		self.connections = list()
 		self.messages_cache = list() #TODO: load it from database
 		self.applications_ports = dict() # { 'app': 123 }
 		
+		if address:
+			self.address = address
+		else: 
+			self.address = return_my_daemon_address()
+			
+	def connect(self, address):
+		""" This function send a connection request to a specific address """
+		if address in self.connections: return
+		
+		message = Message(destination=address, origin=self.address)
+		message.content = {"intent": DAEMON_NODE_CONN_REQ}
+		message.send()
+				
+	def disconnect(self, address):
+		""" This function send a disconnection request to a node """
+		if not address in self.connections: return
+		
+		message = Message(destination=address, origin=self.address)
+		message.content = {"intent": DAEMON_NODE_CONN_REF}
+		message.send()
+		self.connections.pop(self.connections.index(daemon_address))
+		
+	def __analyze_message_from_remote_app(self, message):
+		ip_address = from_dict_to_addr(message.origin)['addr'] 
+		daemon_address = return_daemon_address(ip_address)
+
+		if message.content['intent'] == DAEMON_NODE_CONN_REQ:
+			self.connect(daemon_address)
+			self.connections.append(daemon_address)
+
+		elif message.content['intent'] == DAEMON_NODE_CONN_REF:
+			self.connections.pop(self.connections.index(daemon_address))
+					
+		return
+		
 	def __analyze_message_from_local_app(self, message):
 		return
 		
-	def __analyze_message_from_remote_app(self, message):
-		return
-		
 	def __forward_message(self, received_message):
-		destination_dict = from_addr_to_dict(message.destination)
-
+		connection = return_daemon_address_by_giving_address(received_message.origin)
+		if not connection in self.connections:
+			return
+			
+		destination_dict = from_addr_to_dict(received_message.destination)
+		
 		if destination_dict['app'] in self.applications.keys():
 			destination_dict['port'] = int(self.applications[destination_dict['app']])
 		else:
@@ -74,8 +113,7 @@ class DaemonHandler(object):
 				self.__analyze_message_from_remote_app(message)
 				return
 		else:
-			print
-			#forward message to the application
+			self.__forward_message(message)
 		return
 		
 	def listen_loop(self):
