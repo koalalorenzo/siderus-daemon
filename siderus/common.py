@@ -60,8 +60,8 @@ def from_dict_to_addr(dict_addr):
 def is_local_address(raw_address):
 	""" This function returns True if the address is pointing to localhost """
 	addr_dict = from_addr_to_dict(raw_address)
-	if "localhost" in addr_dict: return Ture
-	if "127.0.0.1" in addr_dict: return Ture
+	if "localhost" in addr_dict['addr']: return True
+	if "127.0.0.1" in addr_dict['addr']: return True
 	return False
 	
 def is_addressed_to_daemon(raw_address):

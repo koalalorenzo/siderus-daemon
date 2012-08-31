@@ -9,6 +9,14 @@ from siderus.common import from_addr_to_dict
 from siderus.common import return_network_publicip
 from siderus.common import is_local_address
 
+DAEMON_REM_CONN_REQ     = 0
+DAEMON_REM_CONN_REF     = 1
+DAEMON_REM_CONN_SHR_ASK = 2
+DAEMON_REM_CONN_SHR_GOT = 3
+
+DAEMON_LOC_CONN_REQ     = 0
+DAEMON_LOC_CONN_REF     = 1
+
 class DaemonHandler(object):
 	"""	
 		This class manage the connections between nodes. The properties 
@@ -80,7 +88,7 @@ class DaemonHandler(object):
 			
 			
 	def clear_cache(self):
-		""" This function sends all the message saved in the cache. """:
+		""" This function sends all the message saved in the cache. """
 		for message in self.messages_cache:
 			message.send()
 	

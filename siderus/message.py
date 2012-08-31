@@ -35,7 +35,7 @@ class Message(object):
 		self.__dict_message = json.loads(str(self.__string_message))
 		self.origin = str(self.__dict_message['origin'])
 		self.destination = str(self.__dict_message['destination'])
-		self.content = str(zlib.decompress(str(self.__dict_message['content']).decode("base64")))
+		self.content = json.loads(str(zlib.decompress(str(self.__dict_message['content']).decode("base64"))))
 
 	def __build_message_to_send(self):
 		""" This function build the self.__dict_message to send """
@@ -46,7 +46,7 @@ class Message(object):
 		self.__dict_message = dict()
 		self.__dict_message['origin'] = str(self.origin)
 		self.__dict_message['destination'] = str(self.destination)
-		self.__dict_message['content'] = str(str(zlib.compress(self.content,9)).encode("base64"))
+		self.__dict_message['content'] = str(str(zlib.compress(json.dumps(self.content),9)).encode("base64"))
 		
 		self.__dict_message['hash'] = str(self.__return_hash())
 		
@@ -57,7 +57,7 @@ class Message(object):
 		
 	def __return_hash(self):
 		""" this function returns the hash to verify the content integrity """
-		hash = md5(self.content)
+		hash = md5(json.dumps(self.content))
 		return str(hash.hexdigest())
 			
 	def sign_message(self, fingerprint):
@@ -115,6 +115,7 @@ class Message(object):
 
 		if not is_local_address(self.destination):
 			# If the destination is remote, send it to the Daemon
+			print "is not local"
 			destination_dict['port'] = 52125 
 			
 		pieces = self.__get_list_splitted_message()
