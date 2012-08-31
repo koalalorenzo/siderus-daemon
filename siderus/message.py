@@ -7,10 +7,7 @@ import json
 import zlib
 from hashlib import md5
 
-from siderus.common import from_dict_to_addr
 from siderus.common import from_addr_to_dict
-from siderus.common import return_myaddr
-from siderus.common import is_local_address
 
 class Message(object):
 	""" 

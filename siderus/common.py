@@ -6,7 +6,7 @@ import urllib
 import random
 import socket
 
-def return_myaddr():
+def return_network_publicip():
 	""" This function returns the public IP """
 	if hasattr(socket, 'setdefaulttimeout'):
 		socket.setdefaulttimeout(10)
