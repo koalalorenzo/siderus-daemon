@@ -15,18 +15,16 @@ class Message(object):
 		This is the message class that receives and sends the message.
 		Each message is a json dictionary, sometimes it is encrypted for security reasons.
 	"""
-	def __init__(self, content=None, destination=None, origin=None, cripted=False, fingerprint=None):
+	def __init__(self, content=None, destination=None, origin=None):
 		self.content = content
 		self.destination = destination
 		self.origin = origin
-		
-		self.cripted = cripted
-		self.fingerprint = fingerprint
-		
+
+		self.hash = None
 		self.socket = None
 		
 		self.__string_message = ""
-		self.__dict_message = ""
+		self.__dict_message = dict()
 		
 		self.__sent_or_received = False
 		
@@ -57,15 +55,11 @@ class Message(object):
 		
 	def __return_hash(self):
 		""" this function returns the hash to verify the content integrity """
-		hash = md5(json.dumps(self.content))
-		return str(hash.hexdigest())
-			
-	def sign_message(self, fingerprint):
-		""" This function sign with a gpg key, the message. """
-		#TODO gnupg
-		return
-
-
+		if not self.hash:
+			hashobj = md5(json.dumps(self.content))
+			self.hash = str(hashobj.hexdigest())
+		return self.hash
+		
 	def receive(self):
 		""" This function receive the message via the socket but do not decode it """
 		if self.__sent_or_received: return
@@ -132,11 +126,6 @@ class Message(object):
 		self.socket = None
 		self.__sent_or_received = True
 		
-	def verify_gpg(self):
-		""" This function verify the message with a gpg key. """
-		#TODO gnupg
-		return
-
 	def is_corrupted(self):
 		""" This function verify hashes to check if the message is corrupted or not """
 		msg_hash = self.__return_hash()
@@ -146,3 +135,9 @@ class Message(object):
 		
 	def __dict__(self):
 		return self.__dict_message
+		
+	def __str__(self):
+		return self.__string_message
+	
+	def __unicode__(self)
+		return u"%s" % self.__string_message
