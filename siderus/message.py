@@ -20,7 +20,7 @@ class Message(object):
 		self.destination = destination
 		self.origin = origin
 
-		self.hash = None
+		self.__hash = None
 		self.socket = None
 		
 		self.__string_message = ""
@@ -46,19 +46,19 @@ class Message(object):
 		self.__dict_message['destination'] = str(self.destination)
 		self.__dict_message['content'] = str(str(zlib.compress(json.dumps(self.content),9)).encode("base64"))
 		
-		self.__dict_message['hash'] = str(self.__return_hash())
+		self.__dict_message['hash'] = str(self.hash())
 		
 	def encode_message(self):
 		""" This function "translate" the message from json to string """
 		self.__build_message_to_send()
 		self.__string_message = json.dumps(self.__dict_message)
 		
-	def __return_hash(self):
+	def hash(self):
 		""" this function returns the hash to verify the content integrity """
-		if not self.hash:
+		if not self.__hash:
 			hashobj = md5(json.dumps(self.content))
-			self.hash = str(hashobj.hexdigest())
-		return self.hash
+			self.__hash = str(hashobj.hexdigest())
+		return self.__hash
 		
 	def receive(self):
 		""" This function receive the message via the socket but do not decode it """
@@ -128,7 +128,7 @@ class Message(object):
 		
 	def is_corrupted(self):
 		""" This function verify hashes to check if the message is corrupted or not """
-		msg_hash = self.__return_hash()
+		msg_hash = self.hash()
 		if self.__dict_message['hash'] == msg_hash:
 			return False
 		return True
@@ -139,5 +139,13 @@ class Message(object):
 	def __str__(self):
 		return self.__string_message
 	
-	def __unicode__(self)
+	def __unicode__(self):
 		return u"%s" % self.__string_message
+
+	def __eq__(self, other):
+		if other.hash() == self.hash():
+			return True
+		return False
+		
+	def __ne__(self, other):
+		return not self.__eq__(other)

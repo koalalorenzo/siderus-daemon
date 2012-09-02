@@ -19,6 +19,9 @@ DAEMON_APP_CONN_REQ      = 4
 DAEMON_APP_CONN_REF      = 5
 DAEMON_APP_CONN_LST_ASK  = 6
 DAEMON_APP_CONN_LST_ANS  = 7
+DAEMON_APP_LCCN_REQ      = 8
+DAEMON_APP_LCCN_REF      = 9
+
 
 class DaemonHandler(object):
 	"""	
@@ -74,7 +77,7 @@ class DaemonHandler(object):
 						  }
 		message.send()
 
-	self.__connect_to_nodes(self, nodes):
+	def __connect_to_nodes(self, nodes):
 		for node in nodes:
 			self.connect(node)
 	
