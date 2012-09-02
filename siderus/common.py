@@ -56,6 +56,10 @@ def from_dict_to_addr(dict_addr):
 	"""
 	return "%s@%s:%s" % ( dict_addr['app'], dict_addr['addr'], dict_addr['port'] )
 
+def from_arg_to_addr(app="daemon", addr="127.0.0.1", port=52125):
+	""" This function return a Siderus address by passing its data as options. """	
+	return "%s@%s:%s" % ( app, addr, port )
+
 def is_local_address(raw_address):
 	""" This function returns True if the address is pointing to localhost """
 	addr_dict = from_addr_to_dict(raw_address)
