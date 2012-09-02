@@ -6,9 +6,10 @@ from siderus.message import Message
 
 from siderus.common import from_dict_to_addr
 from siderus.common import from_addr_to_dict
+from siderus.common import from_arg_to_addr
 from siderus.common import return_my_daemon_address
 from siderus.common import is_local_address
-
+from siderus.common import get_random_port
 
 DAEMON_NODE_CONN_REQ     = 0
 DAEMON_NODE_CONN_REF     = 1
@@ -18,9 +19,11 @@ DAEMON_NODE_CONN_SHR_ANS = 3
 DAEMON_APP_CONN_REQ      = 4
 DAEMON_APP_CONN_REF      = 5
 DAEMON_APP_CONN_LST_ASK  = 6
-DAEMON_APP_CONN_LST_ANS  = 7
-DAEMON_APP_LCCN_REQ      = 8
-DAEMON_APP_LCCN_REF      = 9
+DAEMON_APP_CONN_LST_ANS  = 7 # Not Used by daemon
+DAEMON_APP_CONN_SHR_ASK  = 8
+DAEMON_APP_LCCN_REQ      = 9
+DAEMON_APP_LCCN_REQ_PRT  = 10
+DAEMON_APP_LCCN_REF      = 11
 
 
 class DaemonHandler(object):
@@ -36,7 +39,7 @@ class DaemonHandler(object):
 	def __init__(self, address=None):
 		self.connections = list()
 		self.messages_cache = list() #TODO: load it from database
-		self.applications_ports = dict() # { 'app': 123 }
+		self.applications = dict() # { 'app': 123 }
 		
 		if address:
 			self.address = address
@@ -102,9 +105,53 @@ class DaemonHandler(object):
 			print "What are you doing? -", message.content
 			
 		return
+	
+	def add_application(self, application):
+		""" 
+			This function send to the application the port 
+			to use establishing a connection.
+		"""	
+		port = get_random_port(exclude_list=self.applications.values())
+		dest = from_arg_to_addr(application, "127.0.0.1", 52225)
+		
+		message = Message(destination=dest, origin=orig)
+		message.content = {"intent": DAEMON_APP_LCCN_REQ_PRT, "port": port}
+		message.send()
+				
+		self.applications[application] = port
+		
+	def __send_app_connections(self, app):
+		if not app in self.applications.keys(): return
+		
+		dest = from_arg_to_addr(app, "127.0.0.1", self.applications[app])
+		orig = from_arg_to_addr()
+		
+		message = Message(destination=dest, origin=orig)
+		message.content = {
+							"intent": DAEMON_APP_CONN_LST_ANS, 
+							"connections": self.connections
+						   }
+		message.send()
 		
 	def __analyze_message_from_local_app(self, message):
 		# Requestes arrived from local applications, es: list connections, connect, disconnect
+		application = from_dict_to_addr(message.origin)['app'] 
+
+		if message.content['intent'] == DAEMON_APP_LCCN_REQ:
+			self.add_application(application)
+			return
+		if not application in self.applications: return
+		
+		if message.content['intent'] == DAEMON_APP_LCCN_REF:
+			self.appliations.pop(application)
+		elif message.content['intent'] == DAEMON_APP_CONN_REQ:
+			self.connect(message.content['node'])
+		elif message.content['intent'] == DAEMON_APP_CONN_REF:
+			self.disconnect(message.content['node'])
+		elif message.content['intent'] == DAEMON_APP_CONN_LST_ASK:
+			self.__send_app_connections(application)
+		elif message.content['intent'] == DAEMON_APP_CONN_SHR_ASK:
+			self.ask_connections(message.content['node'])
 		return
 		
 	def __forward_message(self, received_message):
