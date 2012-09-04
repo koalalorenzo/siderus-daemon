@@ -28,7 +28,7 @@ class Message(object):
 		
 		self.__sent_or_received = False
 		
-	def decode_message(self):
+	def decode(self):
 		""" This function "translate" the message from string to json """
 		self.__dict_message = json.loads(str(self.__string_message))
 		self.origin = str(self.__dict_message['origin'])

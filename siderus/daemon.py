@@ -10,20 +10,23 @@ from siderus.common import from_arg_to_addr
 from siderus.common import return_my_daemon_address
 from siderus.common import is_local_address
 from siderus.common import get_random_port
+from siderus.common import return_daemon_address
 
-DAEMON_NODE_CONN_REQ     = 0
-DAEMON_NODE_CONN_REF     = 1
-DAEMON_NODE_CONN_SHR_ASK = 2
-DAEMON_NODE_CONN_SHR_ANS = 3
+# Import remote intents:
+from siderus.common import DAEMON_NODE_CONN_REQ
+from siderus.common import DAEMON_NODE_CONN_REF
+from siderus.common import DAEMON_NODE_CONN_SHR_ASK
+from siderus.common import DAEMON_NODE_CONN_SHR_ANS
 
-DAEMON_APP_CONN_REQ      = 4 # Req keys: Node
-DAEMON_APP_CONN_REF      = 5 # Req keys: Node
-DAEMON_APP_CONN_LST_ASK  = 6 
-DAEMON_APP_CONN_LST_ANS  = 7 
-DAEMON_APP_CONN_SHR_ASK  = 8 # Req keys: Node
-DAEMON_APP_LCCN_REQ      = 9
-DAEMON_APP_LCCN_REQ_PRT  = 10
-DAEMON_APP_LCCN_REF      = 11
+# Import local intents:
+from siderus.common import DAEMON_APP_CONN_REQ
+from siderus.common import DAEMON_APP_CONN_REF
+from siderus.common import DAEMON_APP_CONN_LST_ASK
+from siderus.common import DAEMON_APP_CONN_LST_ANS 
+from siderus.common import DAEMON_APP_CONN_SHR_ASK
+from siderus.common import DAEMON_APP_LCCN_REQ
+from siderus.common import DAEMON_APP_LCCN_REQ_PRT
+from siderus.common import DAEMON_APP_LCCN_REF
 
 
 class Handler(object):
@@ -85,7 +88,7 @@ class Handler(object):
 			self.connect(node)
 	
 	def __analyze_message_from_remote_app(self, message):
-		ip_address = from_dict_to_addr(message.origin)['addr'] 
+		ip_address = from_addr_to_dict(message.origin)['addr'] 
 		daemon_address = return_daemon_address(ip_address)
 
 		if message.content['intent'] == DAEMON_NODE_CONN_REQ:
@@ -112,10 +115,12 @@ class Handler(object):
 			to use establishing a connection.
 		"""	
 		port = get_random_port(exclude_list=self.applications.values())
-		dest = from_arg_to_addr(application, "127.0.0.1", 52225)
 		
+		dest = from_arg_to_addr(application, "127.0.0.1", 52225)
+		orig = return_daemon_address("127.0.0.1")
+				
 		message = Message(destination=dest, origin=orig)
-		message.content = {"intent": DAEMON_APP_LCCN_REQ_PRT, "port": port}
+		message.content = {"intent": DAEMON_APP_LCCN_REQ_PRT, "address": }
 		message.send()
 				
 		self.applications[application] = port
@@ -135,7 +140,7 @@ class Handler(object):
 		
 	def __analyze_message_from_local_app(self, message):
 		# Requestes arrived from local applications, es: list connections, connect, disconnect
-		application = from_dict_to_addr(message.origin)['app'] 
+		application = from_addr_to_dict(message.origin)['app'] 
 
 		if message.content['intent'] == DAEMON_APP_LCCN_REQ:
 			self.add_application(application)
@@ -203,8 +208,9 @@ class Handler(object):
 		
 	def listen_loop(self):
 		""" This function run a infinite loop that get messages. """
+		daemon_address = return_my_daemon_address()
 		while 1:
-			message = Message()
+			message = Message(destination=daemon_address)
 			message.receive()
 			#thread this process:
 			self.analyze(message)
