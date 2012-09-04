@@ -10,6 +10,5 @@ __license__ = "See: http://creativecommons.org/licenses/by-nd/3.0/ "
 __copyright__ = "Copyright (c) 2009, 2010, 2011, 2012, 2013 Lorenzo Setale"
 
 import common
-from handler import DaemonHandler
 from message import Message
-from application import Application
+from application import Handler
