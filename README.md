@@ -22,3 +22,8 @@ and applications. It could be considered as a
 is connected to some applications. An application receives messages directly from the daemon.
 
 When a message arrives from another node, it is first received by the daemon. The daemon verifies the message and the origin, then sends it to the specific application addressed. This happens also when an application has to send a message: messages to send are collected by the daemon, and then are sent to the remote destination/node.
+
+
+## License
+
+This work is licensed under a Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported License. To view a copy of this license, visit [http://creativecommons.org/licenses/by-nc-nd/3.0/]( http://creativecommons.org/licenses/by-nc-nd/3.0/ ) .
