@@ -11,6 +11,7 @@ from siderus.common import return_my_daemon_address
 from siderus.common import is_local_address
 from siderus.common import get_random_port
 from siderus.common import return_daemon_address
+from siderus.common import return_application_address
 
 # Import remote intents:
 from siderus.common import DAEMON_NODE_CONN_REQ
@@ -118,9 +119,10 @@ class Handler(object):
 		
 		dest = from_arg_to_addr(application, "127.0.0.1", 52225)
 		orig = return_daemon_address("127.0.0.1")
-				
+		app_address = return_application_address(application, port)
+		
 		message = Message(destination=dest, origin=orig)
-		message.content = {"intent": DAEMON_APP_LCCN_REQ_PRT, "address": }
+		message.content = {"intent": DAEMON_APP_LCCN_REQ_PRT, "address": app_address }
 		message.send()
 				
 		self.applications[application] = port

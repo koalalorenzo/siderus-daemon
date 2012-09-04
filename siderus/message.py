@@ -34,6 +34,8 @@ class Message(object):
 		self.origin = str(self.__dict_message['origin'])
 		self.destination = str(self.__dict_message['destination'])
 		self.content = json.loads(str(zlib.decompress(str(self.__dict_message['content']).decode("base64"))))
+		
+		print "R:", self.content
 
 	def __build_message_to_send(self):
 		""" This function build the self.__dict_message to send """
@@ -88,7 +90,7 @@ class Message(object):
 	def receive_and_decode(self):
 		""" This function receive the message via socket and decode it """
 		self.receive()
-		self.decode_message()
+		self.decode()
 		self.__sent_or_received = True
 		
 	def __get_list_splitted_message(self):
@@ -103,7 +105,8 @@ class Message(object):
 		if self.__sent_or_received: return #RAISE
 		
 		self.encode_message()
-		
+		print "S:", self.content
+
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
 

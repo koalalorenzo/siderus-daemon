@@ -121,7 +121,8 @@ def return_daemon_address_by_giving_address(address):
 def return_application_address(application, port):
 	""" This function returns the application correct address by giving its name and port """
 	
-	dict_addr = return_network_publicip()
+	dict_addr = dict()
+	dict_addr["addr"] = return_network_publicip()
 	dict_addr["app"] = application
 	dict_addr["port"] = int(port)
 	

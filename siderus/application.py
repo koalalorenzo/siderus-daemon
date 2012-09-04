@@ -24,8 +24,10 @@ class Handler(object):
 		
 		# This is used by threads to send message "sequentially"
 		self.__messages_queque = list() 
-	
-	def register_app(self):
+
+		self.__register_app()
+
+	def __register_app(self):
 		""" This function ask the Siderus Daemon to register the app """
 		
 		self.address = from_arg_to_addr(app=self.name, port=52225) #TMP addr
@@ -37,8 +39,8 @@ class Handler(object):
 
 		message_port = Message(destination=self.address)
 		message_port.receive_and_decode()
-		print message.content
 		
+		self.address = message_port.content['address']		
 		
 	def __listen_loop(self):
 		""" This function run a infinite loop that get messages. """
