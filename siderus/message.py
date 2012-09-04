@@ -6,6 +6,7 @@ import socket
 import json
 import zlib
 from hashlib import md5
+import os
 
 from siderus.common import from_addr_to_dict
 from siderus.common import is_local_address
@@ -35,7 +36,9 @@ class Message(object):
 		self.destination = str(self.__dict_message['destination'])
 		self.content = json.loads(str(zlib.decompress(str(self.__dict_message['content']).decode("base64"))))
 		
-		print "R:", self.content
+		# With SIDERUS_DEBUG=1 it will print stuff
+		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
+			print "R:", self.content
 
 	def __build_message_to_send(self):
 		""" This function build the self.__dict_message to send """
@@ -105,14 +108,16 @@ class Message(object):
 		if self.__sent_or_received: return #RAISE
 		
 		self.encode_message()
-		print "S:", self.content
+		
+		# With SIDERUS_DEBUG=1 it will print stuff
+		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
+			print "S:", self.content
 
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
 
 		if not is_local_address(self.destination):
 			# If the destination is remote, send it to the Daemon
-			print "is not local"
 			destination_dict['port'] = 52125 
 			
 		pieces = self.__get_list_splitted_message()
