@@ -6,6 +6,24 @@ import urllib
 import random
 import socket
 
+# Constants
+
+DAEMON_NODE_CONN_REQ     = 0
+DAEMON_NODE_CONN_REF     = 1
+DAEMON_NODE_CONN_SHR_ASK = 2
+DAEMON_NODE_CONN_SHR_ANS = 3
+
+DAEMON_APP_CONN_REQ      = 4 # Req keys: Node
+DAEMON_APP_CONN_REF      = 5 # Req keys: Node
+DAEMON_APP_CONN_LST_ASK  = 6 
+DAEMON_APP_CONN_LST_ANS  = 7 
+DAEMON_APP_CONN_SHR_ASK  = 8 # Req keys: Node
+DAEMON_APP_LCCN_REQ      = 9
+DAEMON_APP_LCCN_REQ_PRT  = 10
+DAEMON_APP_LCCN_REF      = 11
+
+# Coommon functions
+
 def return_network_publicip():
 	""" This function returns the public IP """
 	if hasattr(socket, 'setdefaulttimeout'):
@@ -99,3 +117,14 @@ def return_daemon_address_by_giving_address(address):
 	dict_addr["port"] = 52125
 	
 	return from_dict_to_addr(dict_addr)
+	
+def return_application_address(application, port):
+	""" This function returns the application correct address by giving its name and port """
+	
+	dict_addr = return_network_publicip()
+	dict_addr["app"] = application
+	dict_addr["port"] = int(port)
+	
+	return from_dict_to_addr(dict_addr)
+	
+	
