@@ -163,11 +163,15 @@ class Handler(object):
 		self.__bonjour_discover = None
 		self.__listening = False
 			
-	def connect(self, address):
+	def connect(self, address, local_subnet=False):
 		""" This function send a connection request to a specific address """
 		if address in self.connections: return
+
+		daemon_address = self.address
+		if local_subnet:
+			daemon_address = return_my_daemon_address(public=False)
 		
-		message = Message(destination=address, origin=self.address)
+		message = Message(destination=address, origin=daemon_address)
 		message.content = {"intent": DAEMON_NODE_CONN_REQ}
 		message.send()		
 				
