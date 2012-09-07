@@ -111,12 +111,13 @@ def from_arg_to_addr(app="daemon", addr="127.0.0.1", port=52125):
 	""" This function return a Siderus address by passing its data as options. """	
 	return "%s@%s:%s" % ( app, addr, port )
 
-def is_subnet_address(raw_address):
-	""" This function returns True if the address is pointing to a node in subnet """
-	addr_dict = from_addr_to_dict(raw_address)
-	if "10.0" in addr_dict['addr']: return True
-	if "192.168" in addr_dict['addr']: return True
-	return False
+def is_siderus_address(raw_address):
+	""" This function returns True if the given string is a siderus address"""
+	try:
+		from_addr_to_dict(raw_address)
+		return True
+	except:
+		return False
 
 def is_local_address(raw_address):
 	""" This function returns True if the address is pointing to localhost """
@@ -175,6 +176,8 @@ def return_all_my_daemon_addresses():
 	
 def is_addr_in_network(addr, network):
 	""" This function check if the first IP is a specific network"""
+	if is_siderus_address(addr):
+		addr = from_addr_to_dict(addr)['addr']
 	return netaddr.IPAddress(addr) in netaddr.IPNetwork(network).cidr
 
 	

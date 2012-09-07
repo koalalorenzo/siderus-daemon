@@ -18,7 +18,6 @@ from siderus.common import from_addr_to_dict
 from siderus.common import from_arg_to_addr
 from siderus.common import return_my_daemon_address
 from siderus.common import is_local_address
-from siderus.common import is_subnet_address
 from siderus.common import get_random_port
 from siderus.common import return_daemon_address
 from siderus.common import return_application_address
