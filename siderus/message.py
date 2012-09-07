@@ -41,7 +41,7 @@ class Message(object):
 		
 		# With SIDERUS_DEBUG=1 it will print stuff
 		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
-			print "R:", self.content
+			print "R:", self.__string_message
 
 	def __build_message_to_send(self):
 		""" This function build the self.__dict_message to send """
@@ -114,7 +114,7 @@ class Message(object):
 		
 		# With SIDERUS_DEBUG=1 it will print stuff
 		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
-			print "S:", self.content
+			print "S:", self.__string_message
 
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
