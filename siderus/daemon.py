@@ -194,7 +194,7 @@ class Handler(object):
 			message.send()
 		except:
 			# The message is not received, so the connection will drop.
-			continue
+			pass
 		self.connections.pop(self.connections.index(address))
 		
 	def is_node_alive(self, address):
