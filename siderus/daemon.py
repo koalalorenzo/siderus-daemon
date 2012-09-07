@@ -155,21 +155,19 @@ class Handler(object):
 		self.messages_cache = list() #TODO: load it from database
 		self.applications = dict() # { 'app': 123 }
 		
-		if address:
-			self.address = address
-		else: 
-			self.address = return_my_daemon_address()
+		self.address = return_my_daemon_address()
+		self.subnet_address = return_my_daemon_address(public=False)
 		
 		self.__bonjour_active = False
 		self.__bonjour_discover = None
 		self.__listening = False
 			
-	def connect(self, address, local_subnet=False):
+	def connect(self, address):
 		""" This function send a connection request to a specific address """
 		if address in self.connections: return
 
 		daemon_address = self.address
-		if local_subnet:
+		if is_subnet_address(address):
 			daemon_address = return_my_daemon_address(public=False)
 		
 		message = Message(destination=address, origin=daemon_address)
@@ -193,8 +191,10 @@ class Handler(object):
 			sleep(1)
 			for node in self.__bonjour_discover.nodes:
 				address = return_daemon_address(node)
+				if address == self.address: continue
+				if address == self.subnet_address: continue
 				if address in self.connections: continue
-				self.connect(address, local_subnet=True)
+				self.connect(address)
 		return			
 	
 	def start_zeroconf(self):
