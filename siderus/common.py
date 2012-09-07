@@ -5,6 +5,7 @@
 import urllib
 import random
 import socket
+import netifaces
 
 # Constants
 
@@ -35,13 +36,18 @@ def return_network_publicip():
 		socket.setdefaulttimeout(None)
 	return addr
 
-def return_subnet_localip():
-	""" This function returns the local IP """
-	sockcon = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sockcon.connect(('www.google.com',80))
-	ip, localport = sockcon.getsockname()
-	sockcon.close()
-	return ip
+def return_interfaces_addresses():
+	""" This function returns all the addresses of the  """
+	addresses = list()
+	interfaces = netifaces.interfaces()
+	for interface in interfaces:
+		points = netifaces.ifaddresses(interface)
+		for key in points.keys():
+			for data in points[key]:
+				if data.has_key('addr'):
+					addresses.append(data['addr'])
+	return addresses
+	
 	
 def get_random_port(exclude_list=None):
 	""" This function returns a random port between 49152 and 65535 """
