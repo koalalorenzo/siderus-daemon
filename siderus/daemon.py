@@ -2,6 +2,13 @@
 # -*- coding=utf-8 -*-
 #   Copyright 2009, 2010, 2011, 2012, 2013 Lorenzo Setale < koalalorenzo@gmail.com >
 
+import pybonjour
+import select
+import socket
+
+from thread import start_new_thread as thread
+from time import sleep
+
 from siderus.message import Message
 
 from siderus.common import from_dict_to_addr
@@ -30,6 +37,108 @@ from siderus.common import DAEMON_APP_LCCN_REQ_PRT
 from siderus.common import DAEMON_APP_LCCN_REF
 
 
+class AutodiscoverService(object):
+	"""
+		This class manage the local-connections with other peers, 
+		discovering it by bonjour/avahi ( Zeroconf-like network ).
+	"""
+	def __init__(self):
+		self.nodes = list()
+		self.active = True
+		
+	def register(self):
+		service = pybonjour.DNSServiceRegister(name="Siderus", regtype="_siderus._udp", port=52125)
+		while 1:
+			pybonjour.DNSServiceProcessResult(service)
+			if not self.active:
+				service.close()		
+					
+
+	def __query_record_callback(self, sdRef, flags, interfaceIndex, errorCode, fullname,
+							  rrtype, rrclass, rdata, ttl):
+		""" 
+			This "private" function manage the callback from pybonjour.
+			Code modified from pybonjour example.
+		"""
+		if errorCode == pybonjour.kDNSServiceErr_NoError:
+			addr = socket.inet_ntoa(rdata)
+			if not addr in self.nodes:
+				self.nodes.append(addr)
+	
+	def __resolve_callback(self, sdRef, flags, interfaceIndex, errorCode, fullname,
+						 hosttarget, port, txtRecord):
+		""" 
+			This "private" function manage the callback from pybonjour.
+			Code modified from pybonjour example.
+		"""
+		if errorCode != pybonjour.kDNSServiceErr_NoError:
+			return
+		query_sdRef = pybonjour.DNSServiceQueryRecord(interfaceIndex=interfaceIndex,
+											fullname=hosttarget,
+											rrtype=pybonjour.kDNSServiceType_A,
+											callBack=self.__query_record_callback)
+	
+		try:
+			while True:
+				if not self.active: break
+				ready = select.select([query_sdRef], [], [], 5)
+				if query_sdRef not in ready[0]:
+					break
+				pybonjour.DNSServiceProcessResult(query_sdRef)
+			else:
+				queried.pop()
+		finally:
+			query_sdRef.close()
+						
+	def __browse_callback(self, sdRef, flags, interfaceIndex, errorCode, serviceName, regtype, replyDomain):
+		""" 
+			This "private" function manage the callback from pybonjour.
+			Code modified from pybonjour example.
+		"""
+		if errorCode != pybonjour.kDNSServiceErr_NoError: return
+		resolve_sdRef = pybonjour.DNSServiceResolve(0,
+													interfaceIndex,
+													serviceName,
+													regtype,
+													replyDomain,
+													self.__resolve_callback)
+		try:
+			while True:
+				if not self.active: break
+				ready = select.select([resolve_sdRef], [], [], 5)
+				if resolve_sdRef not in ready[0]:
+					break
+				pybonjour.DNSServiceProcessResult(resolve_sdRef)
+			else:
+				resolved.pop()
+		finally:
+			resolve_sdRef.close()
+			
+	def discover(self):
+		"""
+			This function discover the other nodes/peers and
+			add them in self.nodes.
+		"""
+		browse_sdRef = pybonjour.DNSServiceBrowse(regtype="_siderus._udp",
+												  callBack=self.__browse_callback)
+		
+		try:
+			while True:
+				if not self.active: break
+				ready = select.select([browse_sdRef], [], [])
+				if browse_sdRef in ready[0]:
+					pybonjour.DNSServiceProcessResult(browse_sdRef)
+		finally:
+			browse_sdRef.close()
+			
+	def discover_thread(self):
+		""" This function start self.discover in a different thread """
+		thread(self.discover, () )	
+		
+	def register_thread(self):
+		""" This function start self.register in a different thread """
+		thread(self.register, () )	
+	
 class Handler(object):
 	"""	
 		This class manage the connections between nodes. The properties 
@@ -49,14 +158,17 @@ class Handler(object):
 			self.address = address
 		else: 
 			self.address = return_my_daemon_address()
-			
+		
+		self.__bonjour_active = False
+		self.__listening = False
+
 	def connect(self, address):
 		""" This function send a connection request to a specific address """
 		if address in self.connections: return
 		
 		message = Message(destination=address, origin=self.address)
 		message.content = {"intent": DAEMON_NODE_CONN_REQ}
-		message.send()
+		message.send()		
 				
 	def disconnect(self, address):
 		""" This function send a disconnection request to a node """
@@ -66,6 +178,30 @@ class Handler(object):
 		message.content = {"intent": DAEMON_NODE_CONN_REF}
 		message.send()
 		self.connections.pop(self.connections.index(daemon_address))
+		
+	def __zeroconf_nodes_autoconnect(self):
+		while 1:
+			if not self.__bonjour_active: 
+				self.__bonjour_discover.active = False
+				break
+			sleep(1)
+			for node in self.__bonjour_discover.nodes:
+				address = return_daemon_address(node)
+				self.connect(address)
+		return			
+	
+	def start_zeroconf(self):
+		""" 
+			This function start two bonjour-thread to connect automatically 
+			to the nearby devices
+		"""
+		if self.__bonjour_active: return
+		
+		self.__bonjour_active = True
+		self.__bonjour_discover = AutodiscoverService()
+		self.__bonjour_discover.register_thread()
+		self.__bonjour_discover.discover_thread()
+		thread(self.__zeroconf_nodes_autoconnect, () )
 		
 	def ask_connections(self, address):
 		""" This functions "share" connections with another node """
@@ -222,4 +358,3 @@ class Handler(object):
 		""" This function sends all the message saved in the cache. """
 		for message in self.messages_cache:
 			message.send()
-	
