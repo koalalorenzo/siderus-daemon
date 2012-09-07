@@ -28,6 +28,7 @@ from siderus.common import DAEMON_NODE_CONN_REQ
 from siderus.common import DAEMON_NODE_CONN_REF
 from siderus.common import DAEMON_NODE_CONN_SHR_ASK
 from siderus.common import DAEMON_NODE_CONN_SHR_ANS
+from siderus.common import DAEMON_NODE_CONN_CHK
 
 # Import local intents:
 from siderus.common import DAEMON_APP_CONN_REQ
@@ -189,9 +190,27 @@ class Handler(object):
 				
 		message = Message(destination=address, origin=daemon_address)
 		message.content = {"intent": DAEMON_NODE_CONN_REF}
-		message.send()
+		try:
+			message.send()
+		except:
+			# The message is not received, so the connection will drop.
+			continue
 		self.connections.pop(self.connections.index(address))
 		
+	def is_node_alive(self, address):
+		""" This function check if the connection is still alive """
+		if not address in self.connections: return
+		
+		daemon_address = self.__return_origin_to_use(address)
+				
+		message = Message(destination=address, origin=daemon_address)
+		message.content = {"intent": DAEMON_NODE_CONN_CHK}
+		try:
+			message.send()
+		except:
+			return False
+		return True
+
 	def __zeroconf_nodes_autoconnect(self):
 		while 1:
 			if not self.__bonjour_active: 
@@ -250,7 +269,7 @@ class Handler(object):
 			if daemon_address in self.connections: return
 			self.connect(daemon_address)
 			self.connections.append(daemon_address)
-
+		
 		elif message.content['intent'] == DAEMON_NODE_CONN_REF:
 			self.connections.pop(self.connections.index(daemon_address))
 		
@@ -259,7 +278,8 @@ class Handler(object):
 		
 		elif message.content['intent'] == DAEMON_NODE_CONN_SHR_ANS:
 			self.__connect_to_nodes(message.content['connections'])
-		
+		elif message.content['intent'] == DAEMON_NODE_CONN_CHK:
+			continue # Do Nothing...
 		else:
 			print "What are you doing? -", message.content
 			
@@ -391,7 +411,7 @@ class Handler(object):
 		if self.__bonjour_discover:
 			self.__bonjour_discover.active = False
 		for address in self.connections:
-			thread(self.disconnect, (address,) )
+			self.disconnect(address)
 		sleep(1)
 		self.__listening = False
 		
