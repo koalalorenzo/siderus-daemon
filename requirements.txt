@@ -1,3 +1,4 @@
 json
 pybonjour
 netifaces
+netaddr

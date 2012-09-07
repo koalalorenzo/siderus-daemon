@@ -6,6 +6,7 @@ import urllib
 import random
 import socket
 import netifaces
+import netaddr
 
 # Constants
 
@@ -36,7 +37,7 @@ def return_network_publicip():
 		socket.setdefaulttimeout(None)
 	return addr
 
-def return_interfaces_addresses():
+def return_addresses():
 	""" This function returns all the addresses of the  """
 	addresses = list()
 	interfaces = netifaces.interfaces()
@@ -48,6 +49,29 @@ def return_interfaces_addresses():
 					addresses.append(data['addr'])
 	return addresses
 	
+def return_networks_addresses():
+	""" This function returns a dict containing the addresses fore each network """
+	networks = dict()
+	interfaces = netifaces.interfaces()
+
+	for interface in interfaces:
+		points = netifaces.ifaddresses(interface)
+		for key in points.keys():
+			for data in points[key]:
+				if not data.has_key('netmask'):
+					continue
+				netmask = data['netmask']
+				addr = data['addr']
+				
+				cidr = netaddr.IPNetwork('%s/%s' % (addr, netmask))
+				network = cidr.network
+				
+				key = "%s/%s" % (str(network), netmask)
+				networks[key] = dict()
+				networks[key]['addr'] = addr
+				networks[key]['netmask'] = netmask
+
+	return networks
 	
 def get_random_port(exclude_list=None):
 	""" This function returns a random port between 49152 and 65535 """
@@ -142,9 +166,14 @@ def return_application_address(application, port):
 	
 def return_all_my_daemon_addresses():
 	""" This function returns all the possible daemon addresses """
-	addrs = return_interfaces_addresses()
+	addrs = return_addresses()
 	addresses = list()
 	for ip in addrs:
 		addresses.append(return_daemon_address(ip))
 	return addresses
+	
+def is_addr_in_network(addr, network):
+	""" This function check if the first IP is a specific network"""
+	return netaddr.IPAddress(first) in netaddr.IPNetwork(second).cidr
+
 	
