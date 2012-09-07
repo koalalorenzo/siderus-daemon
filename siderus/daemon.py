@@ -380,6 +380,7 @@ class Handler(object):
 		if self.__bonjour_discover:
 			self.__bonjour_discover.active = False
 		for address in self.connections:
-			self.disconnect(address)
+			thread(self.disconnect, (address,) )
+		sleep(1)
 		self.__listening = False
 		
