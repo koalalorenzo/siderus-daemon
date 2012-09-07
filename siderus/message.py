@@ -19,7 +19,7 @@ def error_handler(signum, frame):
 		This is a handler function called when a SIGALRM is received,
 		it simply raises a string exception
 	"""
-	raise "MessageTimedOut"
+	raise Exception("MessageTimedOut")
 	
 class Message(object):
 	""" 
@@ -124,7 +124,7 @@ class Message(object):
 			print "S:", self.content
 
 		# TimeOut stuff:
-		signal.signal(signal.SIGALRM,handler)		
+		signal.signal(signal.SIGALRM, error_handler)		
 		
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
@@ -145,7 +145,7 @@ class Message(object):
 		
 		data, addr = self.socket.recvfrom(512)
 		if data != "OK":
-			raise "MessageNotSent: received", data
+			raise Exception("MessageReceivedWrongAnswer")
 		signal.alarm(0)
 		
 		self.socket.close()
