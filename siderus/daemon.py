@@ -168,7 +168,7 @@ class Handler(object):
 		""" This function return the correct origin to use in the message """
 		for network in self.networks:
 			if is_addr_in_network(address, network):
-				addr = self.netwroks[network]['addr']
+				addr = self.networks[network]['addr']
 				return return_daemon_address(addr)
 				
 	def connect(self, address):
