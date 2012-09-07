@@ -40,6 +40,8 @@ from siderus.common import DAEMON_APP_LCCN_REQ
 from siderus.common import DAEMON_APP_LCCN_REQ_PRT
 from siderus.common import DAEMON_APP_LCCN_REF
 
+# Time stuff
+from siderus.common import DEFAULT_DAEMON_CHECK_ALIVE_NODES
 
 class AutodiscoverService(object):
 	"""
@@ -186,6 +188,8 @@ class Handler(object):
 		""" This function send a disconnection request to a node """
 		if not address in self.connections: return
 
+		self.connections.pop(self.connections.index(address))
+
 		daemon_address = self.__return_origin_to_use(address)
 				
 		message = Message(destination=address, origin=daemon_address)
@@ -195,7 +199,6 @@ class Handler(object):
 		except:
 			# The message is not received, so the connection will drop.
 			pass
-		self.connections.pop(self.connections.index(address))
 		
 	def is_node_alive(self, address):
 		""" This function check if the connection is still alive """
@@ -392,6 +395,19 @@ class Handler(object):
 			thread(self.analyze, (message,) )
 		return
 		
+	def __connection_check_loop(self):
+		""" 
+			This function checks every %s seconds 
+			if every nodes/connections are alive. If not, it will disconnect from them.
+		""" % DEFAULT_DAEMON_CHECK_ALIVE_NODES
+		while 1:
+			if not self.__listening: break
+			sleep(DEFAULT_DAEMON_CHECK_ALIVE_NODES)
+			for address in self.connections:
+				if not self.is_node_alive(address):
+					thread(self.disconnect, (address, ))
+		return
+		
 	def clear_cache(self):
 		""" This function sends all the message saved in the cache. """
 		for message in self.messages_cache:
@@ -402,6 +418,7 @@ class Handler(object):
 		if self.__listening: raise Exception("Daemon Already Started")
 		self.__listening = True
 		
+		thread(self.__connection_check_loop, () )
 		thread(self.__listen_loop, () )
 		self.start_zeroconf()
 		
@@ -411,7 +428,7 @@ class Handler(object):
 		if self.__bonjour_discover:
 			self.__bonjour_discover.active = False
 		for address in self.connections:
-			self.disconnect(address)
+			thread(self.disconnect, (address,))
 		sleep(1)
 		self.__listening = False
 		
