@@ -160,8 +160,9 @@ class Handler(object):
 			self.address = return_my_daemon_address()
 		
 		self.__bonjour_active = False
+		self.__bonjour_discover = None
 		self.__listening = False
-
+			
 	def connect(self, address):
 		""" This function send a connection request to a specific address """
 		if address in self.connections: return
@@ -344,21 +345,32 @@ class Handler(object):
 			self.__forward_message(message)
 		return
 		
-	def listen_loop(self):
+	def __listen_loop(self):
 		""" This function run a infinite loop that get messages. """
 		daemon_address = return_my_daemon_address()
 		while 1:
+			if not self.__listening: break
 			message = Message(destination=daemon_address)
 			message.receive()
 			thread(self.analyze, (message,) )
-			
-			
+		return
+		
 	def clear_cache(self):
 		""" This function sends all the message saved in the cache. """
 		for message in self.messages_cache:
 			message.send()
 	
 	def start(self):
-		""" This function starts the daemon """
-		thread(self.listen_loop, () )
+		""" This function starts the daemon in threads """
+		if self.__listening: return # RAISE
+		self.__listening = True
+		
+		thread(self.__listen_loop, () )
 		self.start_zeroconf()
+		
+	def stop(self):
+		""" This function stops the daemon threads """
+		self.__listening = False
+		self.__bonjour_active = False
+		if self.__bonjour_discover:
+			self.__bonjour_discover.active = False
