@@ -22,6 +22,8 @@ DAEMON_APP_LCCN_REQ      = 9
 DAEMON_APP_LCCN_REQ_PRT  = 10
 DAEMON_APP_LCCN_REF      = 11
 
+DEFAULT_SEND_MESSAGE_TIMEOUT  = 10
+
 # Coommon functions
 
 def return_network_publicip():

@@ -3,6 +3,7 @@
 #   Copyright 2009, 2010, 2011, 2012, 2013 Lorenzo Setale < koalalorenzo@gmail.com >
 
 import socket
+import signal
 import json
 import zlib
 from hashlib import md5
@@ -11,6 +12,15 @@ import os
 from siderus.common import from_addr_to_dict
 from siderus.common import is_local_address
 
+from siderus.common import DEFAULT_SEND_MESSAGE_TIMEOUT
+
+def error_handler(signum, frame):
+	"""
+		This is a handler function called when a SIGALRM is received,
+		it simply raises a string exception
+	"""
+	raise "MessageTimedOut"
+	
 class Message(object):
 	""" 
 		This is the message class that receives and sends the message.
@@ -113,6 +123,9 @@ class Message(object):
 		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
 			print "S:", self.content
 
+		# TimeOut stuff:
+		signal.signal(signal.SIGALRM,handler)		
+		
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
 
@@ -123,13 +136,18 @@ class Message(object):
 		pieces = self.__get_list_splitted_message()
 		for pice in pieces:
 			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )
+		
+		# Starting the timer :
+		signal.alarm(DEFAULT_SEND_MESSAGE_TIMEOUT)
+		
 		#Message empty to stop it
 		self.socket.sendto( "", (destination_dict['addr'], destination_dict['port']) )
-
+		
 		data, addr = self.socket.recvfrom(512)
 		if data != "OK":
-			return # RAISE 
-
+			raise "MessageNotSent: received", data
+		signal.alarm(0)
+		
 		self.socket.close()
 		self.socket = None
 		self.__sent_or_received = True
