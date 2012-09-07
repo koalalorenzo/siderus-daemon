@@ -62,10 +62,11 @@ def return_networks_addresses():
 					continue
 				netmask = data['netmask']
 				addr = data['addr']
-				
-				cidr = netaddr.IPNetwork('%s/%s' % (addr, netmask))
-				network = cidr.network
-				
+				try:
+					cidr = netaddr.IPNetwork('%s/%s' % (addr, netmask))
+					network = cidr.network
+				except:
+					continue
 				key = "%s/%s" % (str(network), netmask)
 				networks[key] = dict()
 				networks[key]['addr'] = addr
@@ -174,6 +175,6 @@ def return_all_my_daemon_addresses():
 	
 def is_addr_in_network(addr, network):
 	""" This function check if the first IP is a specific network"""
-	return netaddr.IPAddress(first) in netaddr.IPNetwork(second).cidr
+	return netaddr.IPAddress(addr) in netaddr.IPNetwork(network).cidr
 
 	
