@@ -193,7 +193,7 @@ class Handler(object):
 			for node in self.__bonjour_discover.nodes:
 				address = return_daemon_address(node)
 				if address in self.connections: continue
-				self.connect(address)
+				self.connect(address, local_subnet=True)
 		return			
 	
 	def start_zeroconf(self):
