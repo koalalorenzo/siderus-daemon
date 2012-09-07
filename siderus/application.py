@@ -2,6 +2,8 @@
 # -*- coding=utf-8 -*-
 #   Copyright 2009, 2010, 2011, 2012, 2013 Lorenzo Setale < koalalorenzo@gmail.com >
 
+from thread import start_new_thread as thread
+
 from siderus.message import Message
 
 from siderus.common import DAEMON_APP_CONN_REQ
@@ -22,8 +24,9 @@ class Handler(object):
 		self.name = name
 		self.address = None
 		
-		# This is used by threads to send message "sequentially"
-		self.__messages_queque = list() 
+		# This is used by threads to send/get message "sequentially" in buffer
+		self.__messages_outqueque = list() 
+		self.__messages_in_queque = list() 
 
 		self.__register_app()
 
@@ -42,12 +45,15 @@ class Handler(object):
 		
 		self.address = message_port.content['address']		
 		
+	def __decode_and_buffer_message(self, message):
+		message.decode()
+		self.__messages_in_queque.append(message)
+		
 	def __listen_loop(self):
 		""" This function run a infinite loop that get messages. """
 		if not self.address: return 
 		while True:
 			message = Message()
 			message.receive()
-			#thread:
-			message.decode()
-			print(message.content)
+			thread( self.__decode_and_buffer_message, (message,) )
+		

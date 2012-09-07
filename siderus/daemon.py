@@ -279,7 +279,7 @@ class Handler(object):
 		elif message.content['intent'] == DAEMON_NODE_CONN_SHR_ANS:
 			self.__connect_to_nodes(message.content['connections'])
 		elif message.content['intent'] == DAEMON_NODE_CONN_CHK:
-			continue # Do Nothing...
+			return # Do Nothing...
 		else:
 			print "What are you doing? -", message.content
 			
