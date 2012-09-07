@@ -337,7 +337,7 @@ class Handler(object):
 	def analyze(self, message):
 		""" This function decode and analyze the message. """
 		message.decode()
-
+		
 		if message.is_corrupted():
 			#reply with a new "error" message with the sent message.__hash.
 			return
@@ -356,10 +356,9 @@ class Handler(object):
 		
 	def __listen_loop(self):
 		""" This function run a infinite loop that get messages. """
-		daemon_address = return_my_daemon_address()
 		while 1:
 			if not self.__listening: break
-			message = Message(destination=daemon_address)
+			message = Message(destination=self.address)
 			message.receive()
 			thread(self.analyze, (message,) )
 		return
@@ -371,7 +370,7 @@ class Handler(object):
 	
 	def start(self):
 		""" This function starts the daemon in threads """
-		if self.__listening: return # RAISE
+		if self.__listening: raise Exception("Daemon Already Started")
 		self.__listening = True
 		
 		thread(self.__listen_loop, () )
