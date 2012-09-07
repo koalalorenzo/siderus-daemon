@@ -165,10 +165,12 @@ class Handler(object):
 	def connect(self, address):
 		""" This function send a connection request to a specific address """
 		if address in self.connections: return
-
+		if address == self.address: return
+		if address == self.subnet_address: return
+		
 		daemon_address = self.address
 		if is_subnet_address(address):
-			daemon_address = return_my_daemon_address(public=False)
+			daemon_address = self.subnet_address
 		
 		message = Message(destination=address, origin=daemon_address)
 		message.content = {"intent": DAEMON_NODE_CONN_REQ}
@@ -195,7 +197,7 @@ class Handler(object):
 				if address == self.subnet_address: continue
 				if address in self.connections: continue
 				self.connect(address)
-		return			
+		return
 	
 	def start_zeroconf(self):
 		""" 
