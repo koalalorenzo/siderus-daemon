@@ -358,3 +358,8 @@ class Handler(object):
 		""" This function sends all the message saved in the cache. """
 		for message in self.messages_cache:
 			message.send()
+	
+	def start(self):
+		""" This function starts the daemon """
+		thread(self.listen_loop, () )
+		self.start_zeroconf()
