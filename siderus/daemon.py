@@ -11,6 +11,8 @@ from time import sleep
 
 from siderus.message import Message
 
+from siderus.common import return_addresses
+from siderus.common import return_networks_addresses
 from siderus.common import from_dict_to_addr
 from siderus.common import from_addr_to_dict
 from siderus.common import from_arg_to_addr
@@ -20,6 +22,7 @@ from siderus.common import is_subnet_address
 from siderus.common import get_random_port
 from siderus.common import return_daemon_address
 from siderus.common import return_application_address
+from siderus.common import is_addr_in_network
 
 # Import remote intents:
 from siderus.common import DAEMON_NODE_CONN_REQ
@@ -155,23 +158,26 @@ class Handler(object):
 		self.messages_cache = list() #TODO: load it from database
 		self.applications = dict() # { 'app': 123 }
 		
-		self.address = return_my_daemon_address()
-		self.subnet_address = return_my_daemon_address(public=False)
+		self.addresses = return_addresses()
+		self.networks = return_networks_addresses()
 		
 		self.__bonjour_active = False
 		self.__bonjour_discover = None
 		self.__listening = False
-			
+		
+	def __return_origin_to_use(self, address):
+		""" This function return the correct origin to use in the message """
+		for network in self.networks:
+			if is_addr_in_network(address, network):
+				addr = self.netwroks[network]['addr']
+				return return_daemon_address(addr)
+				
 	def connect(self, address):
 		""" This function send a connection request to a specific address """
 		if address in self.connections: return
-		if address == self.address: return
-		if address == self.subnet_address: return
 		
-		daemon_address = self.address
-		if is_subnet_address(address):
-			daemon_address = self.subnet_address
-		
+		daemon_address = self.__return_origin_to_use(address)
+				
 		message = Message(destination=address, origin=daemon_address)
 		message.content = {"intent": DAEMON_NODE_CONN_REQ}
 		message.send()		
@@ -179,11 +185,13 @@ class Handler(object):
 	def disconnect(self, address):
 		""" This function send a disconnection request to a node """
 		if not address in self.connections: return
-		
-		message = Message(destination=address, origin=self.address)
+
+		daemon_address = self.__return_origin_to_use(address)
+				
+		message = Message(destination=address, origin=daemon_address)
 		message.content = {"intent": DAEMON_NODE_CONN_REF}
 		message.send()
-		self.connections.pop(self.connections.index(daemon_address))
+		self.connections.pop(self.connections.index(address))
 		
 	def __zeroconf_nodes_autoconnect(self):
 		while 1:
@@ -193,8 +201,7 @@ class Handler(object):
 			sleep(1)
 			for node in self.__bonjour_discover.nodes:
 				address = return_daemon_address(node)
-				if address == self.address: continue
-				if address == self.subnet_address: continue
+				if address in self.addresses: continue
 				if address in self.connections: continue
 				self.connect(address)
 		return
@@ -215,14 +222,17 @@ class Handler(object):
 	def ask_connections(self, address):
 		""" This functions "share" connections with another node """
 		
-		message = Message(destination=address, origin=self.address)
+		daemon_address = self.__return_origin_to_use(address)
+		
+		message = Message(destination=address, origin=daemon_address)
 		message.content = { "intent": DAEMON_NODE_CONN_SHR_ASK }
 		message.send()
 		
 	def send_connections(self, address):
 		""" This functions "share" connections with another node """
+		daemon_address = self.__return_origin_to_use(address)
 		
-		message = Message(destination=address, origin=self.address)
+		message = Message(destination=address, origin=daemon_address)
 		message.content = {
 							"intent": DAEMON_NODE_CONN_SHR_ANS, 
 							"connections": self.connections
@@ -358,7 +368,7 @@ class Handler(object):
 		""" This function run a infinite loop that get messages. """
 		while 1:
 			if not self.__listening: break
-			message = Message(destination=self.address)
+			message = Message(destination="@:52125")
 			message.receive()
 			thread(self.analyze, (message,) )
 		return
