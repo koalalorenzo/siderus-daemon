@@ -11,7 +11,7 @@ from time import sleep
 
 from siderus.message import Message
 
-from siderus.common import return_addresses
+from siderus.common import return_my_daemons_addresses
 from siderus.common import return_networks_addresses
 from siderus.common import from_dict_to_addr
 from siderus.common import from_addr_to_dict
@@ -157,7 +157,7 @@ class Handler(object):
 		self.messages_cache = list() #TODO: load it from database
 		self.applications = dict() # { 'app': 123 }
 		
-		self.addresses = return_addresses()
+		self.addresses = return_my_daemons_addresses()
 		self.networks = return_networks_addresses()
 		
 		self.__bonjour_active = False

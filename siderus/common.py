@@ -142,8 +142,15 @@ def return_daemon_address(ip_address):
 	
 	return from_dict_to_addr(dict_addr)
 	
+def return_my_daemons_addresses():
+	""" This function returns the daemon addresses. """
+	addresses = list()
+	for addr in return_addresses():
+		addresses.append(return_daemon_address(addr))
+	return addresses
+	
 def return_my_daemon_address(public=True):
-	""" This function return the daemon address. """
+	""" This function returns the daemon address. """
 	address = return_network_publicip()
 	return return_daemon_address(address)
 	
