@@ -78,6 +78,13 @@ def from_arg_to_addr(app="daemon", addr="127.0.0.1", port=52125):
 	""" This function return a Siderus address by passing its data as options. """	
 	return "%s@%s:%s" % ( app, addr, port )
 
+def is_subnet_address(raw_address):
+	""" This function returns True if the address is pointing to a node in subnet """
+	addr_dict = from_addr_to_dict(raw_address)
+	if "10.0" in addr_dict['addr']: return True
+	if "192.168" in addr_dict['addr']: return True
+	return False
+
 def is_local_address(raw_address):
 	""" This function returns True if the address is pointing to localhost """
 	addr_dict = from_addr_to_dict(raw_address)
