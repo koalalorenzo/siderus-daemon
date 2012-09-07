@@ -118,10 +118,7 @@ def return_daemon_address(ip_address):
 	
 def return_my_daemon_address(public=True):
 	""" This function return the daemon address. """
-	if public:
-		address = return_network_publicip()
-	else:
-		address = return_subnet_localip()
+	address = return_network_publicip()
 	return return_daemon_address(address)
 	
 def return_daemon_address_by_giving_address(address):
@@ -143,4 +140,11 @@ def return_application_address(application, port):
 	
 	return from_dict_to_addr(dict_addr)
 	
+def return_all_my_daemon_addresses():
+	""" This function returns all the possible daemon addresses """
+	addrs = return_interfaces_addresses()
+	addresses = list()
+	for ip in addrs:
+		addresses.append(return_daemon_address(ip))
+	return addresses
 	
