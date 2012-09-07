@@ -350,8 +350,7 @@ class Handler(object):
 		while 1:
 			message = Message(destination=daemon_address)
 			message.receive()
-			#thread this process:
-			self.analyze(message)
+			thread(self.analyze, (message,) )
 			
 			
 	def clear_cache(self):
