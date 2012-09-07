@@ -188,6 +188,7 @@ class Handler(object):
 			sleep(1)
 			for node in self.__bonjour_discover.nodes:
 				address = return_daemon_address(node)
+				if address in self.connections: continue
 				self.connect(address)
 		return			
 	
@@ -230,6 +231,7 @@ class Handler(object):
 		daemon_address = return_daemon_address(ip_address)
 
 		if message.content['intent'] == DAEMON_NODE_CONN_REQ:
+			if daemon_address in self.connections: return
 			self.connect(daemon_address)
 			self.connections.append(daemon_address)
 
@@ -370,7 +372,10 @@ class Handler(object):
 		
 	def stop(self):
 		""" This function stops the daemon threads """
-		self.__listening = False
 		self.__bonjour_active = False
 		if self.__bonjour_discover:
 			self.__bonjour_discover.active = False
+		for address in self.connections:
+			self.disconnect(address)
+		self.__listening = False
+		
