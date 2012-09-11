@@ -45,9 +45,9 @@ class Message(object):
 
 	def __build_message_to_send(self):
 		""" This function build the self.__dict_message to send """
-		if not self.content: return
-		if not self.destination: return
-		if not self.origin: return 
+		if not self.content: raise Exception("NoContentSpecified")
+		if not self.destination: raise Exception("NoDestinationSpecified")
+		if not self.origin: raise Exception("NoOriginSpecified")
 		
 		self.__dict_message = dict()
 		self.__dict_message['origin'] = str(self.origin)

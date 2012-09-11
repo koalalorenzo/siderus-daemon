@@ -160,6 +160,7 @@ class Handler(object):
 		self.messages_cache = list() #TODO: load it from database
 		self.applications = dict() # { 'app': 123 }
 		
+
 		self.addresses = return_my_daemons_addresses()
 		self.networks = return_networks_addresses()
 		
@@ -173,6 +174,7 @@ class Handler(object):
 			if is_addr_in_network(address, network):
 				addr = self.networks[network]['addr']
 				return return_daemon_address(addr)
+		raise Exception("NoDaemonAddress for '%s'", %address)
 				
 	def connect(self, address):
 		""" This function send a connection request to a specific address """
