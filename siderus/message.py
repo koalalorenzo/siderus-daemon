@@ -13,6 +13,7 @@ from siderus.common import from_addr_to_dict
 from siderus.common import is_local_address
 
 from siderus.common import DEFAULT_SEND_MESSAGE_TIMEOUT
+from siderus import __version__
 
 class Message(object):
 	""" 
@@ -31,13 +32,15 @@ class Message(object):
 		self.__dict_message = dict()
 		
 		self.__sent_or_received = False
-		
+		self.__version = __version__		
+
 	def decode(self):
 		""" This function "translate" the message from string to json """
 		self.__dict_message = json.loads(str(self.__string_message))
 		self.origin = str(self.__dict_message['origin'])
 		self.destination = str(self.__dict_message['destination'])
 		self.content = json.loads(str(zlib.decompress(str(self.__dict_message['content']).decode("base64"))))
+		self.__version = self.__dict_message['version']
 		
 		# With SIDERUS_DEBUG=1 it will print stuff
 		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
@@ -54,6 +57,7 @@ class Message(object):
 		self.__dict_message['destination'] = str(self.destination)
 		self.__dict_message['content'] = str(str(zlib.compress(json.dumps(self.content),9)).encode("base64"))
 		
+		self.__dict_message['version'] = self.__version
 		self.__dict_message['hash'] = str(self.hash())
 		
 	def encode_message(self):
