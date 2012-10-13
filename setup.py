@@ -2,7 +2,6 @@
 # -*- coding=utf-8 -*-
 
 from distutils.core import setup
-import siderus
 
 def parse_requirements(file_name):
     requirements = []
