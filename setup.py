@@ -2,6 +2,7 @@
 # -*- coding=utf-8 -*-
 
 from distutils.core import setup
+import re
 
 def parse_requirements(file_name):
     requirements = []
