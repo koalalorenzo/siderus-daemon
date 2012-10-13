@@ -174,7 +174,7 @@ class Handler(object):
 			if is_addr_in_network(address, network):
 				addr = self.networks[network]['addr']
 				return return_daemon_address(addr)
-		raise Exception("NoDaemonAddress for '%s'", %address)
+		raise Exception("NoDaemonAddress for '%s'" % address)
 				
 	def connect(self, address):
 		""" This function send a connection request to a specific address """
