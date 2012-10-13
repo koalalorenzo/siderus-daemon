@@ -12,4 +12,4 @@ destination = return_application_address("MessageTester" , 52225)
 m = Message(destination=destination)
 m.receive_and_decode()
 
-print m.content
+print(m.content)

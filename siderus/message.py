@@ -8,6 +8,7 @@ import json
 import zlib
 from hashlib import md5
 import os
+import sys
 
 from siderus.common import from_addr_to_dict
 from siderus.common import is_local_address
@@ -44,7 +45,7 @@ class Message(object):
 		
 		# With SIDERUS_DEBUG=1 it will print stuff
 		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
-			print "R:", self.__string_message
+			sys.stdout.write("R: %s\n" % self.__string_message)
 
 	def __build_message_to_send(self):
 		""" This function build the self.__dict_message to send """
@@ -118,7 +119,7 @@ class Message(object):
 		
 		# With SIDERUS_DEBUG=1 it will print stuff
 		if os.environ.has_key('SIDERUS_DEBUG') and bool(int(os.environ['SIDERUS_DEBUG'])):
-			print "S:", self.__string_message
+			sys.stdout.write("S: %s\n" % self.__string_message)
 
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)

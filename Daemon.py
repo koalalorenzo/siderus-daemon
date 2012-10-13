@@ -6,7 +6,7 @@ daemon = Handler()
 
 daemon.start()
 
-print "Started"
+print("Started")
 
 while True:
     continue

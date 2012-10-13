@@ -291,7 +291,7 @@ class Handler(object):
 		elif message.content['intent'] == DAEMON_NODE_CONN_CHK:
 			return # Do Nothing...
 		else:
-			print "What are you doing? -", message.content
+			sys.stdout.write("What are you doing? - %s\n" % message.content)
 			
 		return
 	
