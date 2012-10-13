@@ -23,6 +23,11 @@ from siderus.common import return_daemon_address
 from siderus.common import return_application_address
 from siderus.common import is_addr_in_network
 
+# Import defaults
+from siderus.common import DAEMON_APP_NAME
+from siderus.common import DAEMON_APP_PORT
+from siderus.common import DEFAULT_APP_TMP_PORT
+
 # Import remote intents:
 from siderus.common import DAEMON_NODE_CONN_REQ
 from siderus.common import DAEMON_NODE_CONN_REF
@@ -53,7 +58,7 @@ class AutodiscoverService(object):
 		self.active = True
 		
 	def register(self):
-		service = pybonjour.DNSServiceRegister(name="Siderus", regtype="_siderus._udp", port=52125)
+		service = pybonjour.DNSServiceRegister(name="Siderus", regtype="_siderus._udp", port=DAEMON_APP_PORT)
 		while 1:
 			pybonjour.DNSServiceProcessResult(service)
 			if not self.active:
@@ -297,7 +302,7 @@ class Handler(object):
 		"""	
 		port = get_random_port(exclude_list=self.applications.values())
 		
-		dest = from_arg_to_addr(application, "127.0.0.1", 52225)
+		dest = from_arg_to_addr(application, "127.0.0.1", DEFAULT_APP_TMP_PORT)
 		orig = return_daemon_address("127.0.0.1")
 		app_address = return_application_address(application, port)
 		
@@ -392,7 +397,7 @@ class Handler(object):
 		""" This function run a infinite loop that get messages. """
 		while 1:
 			if not self.__listening: break
-			message = Message(destination="@:52125")
+			message = Message(destination="@:%s" % DAEMON_APP_PORT)
 			message.receive()
 			thread(self.analyze, (message,) )
 		return

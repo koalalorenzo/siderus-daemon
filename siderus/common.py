@@ -10,6 +10,9 @@ import netaddr
 
 # Constants
 
+DAEMON_APP_NAME = "daemon"
+DAEMON_APP_PORT = 52125
+
 DAEMON_NODE_CONN_REQ     = 1.1
 DAEMON_NODE_CONN_REF     = 1.2
 DAEMON_NODE_CONN_SHR_ASK = 2.1
@@ -27,6 +30,9 @@ DAEMON_APP_LCCN_REF      = 7.3
 
 DEFAULT_SEND_MESSAGE_TIMEOUT     = 10
 DEFAULT_DAEMON_CHECK_ALIVE_NODES = 15
+
+DEFAULT_APP_TMP_PORT =  52225
+
 # Coommon functions
 
 def return_network_publicip():
@@ -81,15 +87,15 @@ def get_random_port(exclude_list=None):
 	port = random.randint(49152, 65535)
 	if exclude_list:
 		if int(port) in exclude_list: return get_random_port()
-	if int(port) is 52125: return get_random_port()
+	if int(port) is DAEMON_APP_PORT: return get_random_port()
 	return int(port)
 	
 def from_addr_to_dict(address):
 	"""
 		This function read an address and transform it in a dictionary:
 		
-		>>> from_addr_to_dict("application@10.0.0.22:52125")
-		{ "addr": "10.0.0.2", "port": 52125, "app": "application" } 
+		>>> from_addr_to_dict("application@10.0.0.22:DAEMON_APP_PORT")
+		{ "addr": "10.0.0.2", "port": DAEMON_APP_PORT, "app": "application" } 
 		
 	"""
 	dict_addr = dict()
@@ -104,11 +110,11 @@ def from_dict_to_addr(dict_addr):
 		This function read a dictionary and transform it in an address.
 
 		The dict_addr MUST be filled like this:
-		{ "addr": "10.0.0.2", "port": 52125, "app": "application" }
+		{ "addr": "10.0.0.2", "port": DAEMON_APP_PORT, "app": "application" }
 	"""
 	return "%s@%s:%s" % ( dict_addr['app'], dict_addr['addr'], dict_addr['port'] )
 
-def from_arg_to_addr(app="daemon", addr="127.0.0.1", port=52125):
+def from_arg_to_addr(app="daemon", addr="127.0.0.1", port=DAEMON_APP_PORT):
 	""" This function return a Siderus address by passing its data as options. """	
 	return "%s@%s:%s" % ( app, addr, port )
 
@@ -130,16 +136,16 @@ def is_local_address(raw_address):
 def is_addressed_to_daemon(raw_address):
 	""" This function check if the raw_address is pointing to a daemon"""
 	addr_dict = from_addr_to_dict(raw_address)
-	if addr_dict["app"] == "daemon": return True
+	if addr_dict["app"] == DAEMON_APP_NAME: return True
 	return False
 	
 def return_daemon_address(ip_address):
 	""" This function returns the raw address of a specific daemon """
 	
 	dict_addr = dict()
-	dict_addr["app"] = "daemon"
+	dict_addr["app"] = DAEMON_APP_NAME
 	dict_addr["addr"] = ip_address
-	dict_addr["port"] = 52125
+	dict_addr["port"] = DAEMON_APP_PORT
 	
 	return from_dict_to_addr(dict_addr)
 	
@@ -159,8 +165,8 @@ def return_daemon_address_by_giving_address(address):
 	""" This functions return the daemon address by giving a Siderus address. """
 	
 	dict_addr = from_addr_to_dict(address)
-	dict_addr["app"] = "daemon"
-	dict_addr["port"] = 52125
+	dict_addr["app"] = DAEMON_APP_NAME
+	dict_addr["port"] = DAEMON_APP_PORT
 	
 	return from_dict_to_addr(dict_addr)
 	
