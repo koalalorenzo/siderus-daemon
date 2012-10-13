@@ -18,11 +18,11 @@ def parse_requirements(file_name):
     return requirements
 
 setup(name='siderus',
-      version=siderus.__version__,
+      version="0.4",
       description='Siderus Peer-To-Peer Network',
       author='Lorenzo Setale',
       author_email='koalalorenzo@gmail.com',
-      license=siderus.__license__,
+      license="See: http://creativecommons.org/licenses/by-nd/3.0/ ",
       url='http://sider.us/',
       packages=['siderus'],
       install_requires = parse_requirements('requirements.txt'),
