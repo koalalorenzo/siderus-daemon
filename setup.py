@@ -4,6 +4,20 @@
 from distutils.core import setup
 import siderus
 
+def parse_requirements(file_name):
+    requirements = []
+    for line in open(file_name, 'r').read().split('\n'):
+        if re.match(r'(\s*#)|(\s*$)', line):
+            continue
+        if re.match(r'\s*-e\s+', line):
+            requirements.append(re.sub(r'\s*-e\s+.*#egg=(.*)$', r'\1', line))
+        elif re.match(r'\s*-f\s+', line):
+            pass
+        else:
+            requirements.append(line)
+
+    return requirements
+
 setup(name='siderus',
       version=siderus.__version__,
       description='Siderus Peer-To-Peer Network',
@@ -12,4 +26,5 @@ setup(name='siderus',
       license=siderus.__license__,
       url='http://sider.us/',
       packages=['siderus'],
+      install_requires = parse_requirements('requirements.txt'),
      )
