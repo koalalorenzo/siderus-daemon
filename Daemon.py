@@ -2,7 +2,7 @@
 
 from siderus.daemon import Handler
 from time import sleep
-daemon = Handler()
+daemon = Handler(port=12345)
 
 daemon.start()
 
