@@ -16,16 +16,17 @@ from siderus.common import return_networks_addresses
 from siderus.common import from_dict_to_addr
 from siderus.common import from_addr_to_dict
 from siderus.common import from_arg_to_addr
-from siderus.common import return_my_daemon_address
 from siderus.common import is_local_address
 from siderus.common import get_random_port
 from siderus.common import return_daemon_address
 from siderus.common import return_application_address
 from siderus.common import is_addr_in_network
+from siderus.common import return_network_publicip
 
 # Import defaults
 from siderus.common import DAEMON_APP_NAME
-from siderus.common import DAEMON_APP_PORT
+from siderus.common import DAEMON_REM_PORT
+from siderus.common import DAEMON_LOC_PORT
 from siderus.common import DEFAULT_APP_TMP_PORT
 
 # Import remote intents:
@@ -56,9 +57,10 @@ class AutodiscoverService(object):
 	def __init__(self):
 		self.nodes = list()
 		self.active = True
+		self.daemon_port = DAEMON_REM_PORT
 		
 	def register(self):
-		service = pybonjour.DNSServiceRegister(name="Siderus", regtype="_siderus._udp", port=DAEMON_APP_PORT)
+		service = pybonjour.DNSServiceRegister(name="Siderus", regtype="_siderus._udp", port=self.daemon_port)
 		while 1:
 			pybonjour.DNSServiceProcessResult(service)
 			if not self.active:
@@ -68,7 +70,7 @@ class AutodiscoverService(object):
 	def __query_record_callback(self, sdRef, flags, interfaceIndex, errorCode, fullname,
 							  rrtype, rrclass, rdata, ttl):
 		""" 
-			This "private" function manage the callback from pybonjour.
+			This "private" function manages the callback from pybonjour.
 			Code modified from pybonjour example.
 		"""
 		if errorCode == pybonjour.kDNSServiceErr_NoError:
@@ -160,14 +162,18 @@ class Handler(object):
 		the app is not open and is not listening, but the message is 
 		saved and sent when it will be available ).
 	"""
-	def __init__(self, address=None):
-		self.connections = list()
+	def __init__(self, address=None, port=DAEMON_REM_PORT):
+		self.connections = list() # List of addresses of nodes connected
 		self.messages_cache = list() #TODO: load it from database
 		self.applications = dict() # { 'app': 123 }
 		
-
-		self.addresses = return_my_daemons_addresses()
+		self.addresses = return_my_daemons_addresses(port)
 		self.networks = return_networks_addresses()
+		
+		self.daemon_port = port
+		
+		self.remote_address = return_daemon_address(return_network_publicip(), port)
+		self.local_address = return_daemon_address("127.0.0.1", DAEMON_LOC_PORT)
 		
 		self.__bonjour_active = False
 		self.__bonjour_discover = None
@@ -175,14 +181,15 @@ class Handler(object):
 		
 	def __return_origin_to_use(self, address):
 		""" This function return the correct origin to use in the message """
+		port = int(from_addr_to_dict(address)['port'])
 		for network in self.networks:
 			if is_addr_in_network(address, network):
 				addr = self.networks[network]['addr']
-				return return_daemon_address(addr)
+				return return_daemon_address(addr, port)
 		raise Exception("NoDaemonAddress for '%s'" % address)
 				
 	def connect(self, address):
-		""" This function send a connection request to a specific address """
+		""" This function send a connection request to a specific siderus address """
 		if address in self.connections: return
 		
 		daemon_address = self.__return_origin_to_use(address)
@@ -228,7 +235,7 @@ class Handler(object):
 				break
 			sleep(1)
 			for node in self.__bonjour_discover.nodes:
-				address = return_daemon_address(node)
+				address = return_daemon_address(node, DAEMON_LOC_PORT)
 				if address in self.addresses: continue
 				if address in self.connections: continue
 				self.connect(address)
@@ -243,6 +250,7 @@ class Handler(object):
 		
 		self.__bonjour_active = True
 		self.__bonjour_discover = AutodiscoverService()
+		self.__bonjour_discover.daemon_port = self.daemon_port
 		self.__bonjour_discover.register_thread()
 		self.__bonjour_discover.discover_thread()
 		thread(self.__zeroconf_nodes_autoconnect, () )
@@ -272,8 +280,8 @@ class Handler(object):
 			self.connect(node)
 	
 	def __analyze_message_from_remote_app(self, message):
-		ip_address = from_addr_to_dict(message.origin)['addr'] 
-		daemon_address = return_daemon_address(ip_address)
+		connection_dict = from_addr_to_dict(message.origin)
+		daemon_address = return_daemon_address(connection_dict['addr'], connection_dict['port'])
 
 		if message.content['intent'] == DAEMON_NODE_CONN_REQ:
 			if daemon_address in self.connections: return
@@ -397,10 +405,20 @@ class Handler(object):
 		""" This function run a infinite loop that get messages. """
 		while 1:
 			if not self.__listening: break
-			message = Message(destination="@:%s" % DAEMON_APP_PORT)
+			message = Message(destination=self.remote_address)
 			message.receive()
 			thread(self.analyze, (message,) )
 		return
+
+	def __listen_local_loop(self):
+		""" This function run a infinite loop that get messages form local networks. """
+		while 1:
+			if not self.__listening: break
+			message = Message(destination=self.local_address)
+			message.receive()
+			thread(self.analyze, (message,) )
+		return
+
 		
 	def __connection_check_loop(self):
 		""" 
@@ -427,6 +445,7 @@ class Handler(object):
 		
 		thread(self.__connection_check_loop, () )
 		thread(self.__listen_loop, () )
+		thread(self.__listen_local_loop, () )
 		self.start_zeroconf()
 		
 	def stop(self):

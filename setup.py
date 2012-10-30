@@ -19,7 +19,7 @@ def parse_requirements(file_name):
     return requirements
 
 setup(name='siderus',
-      version="0.4",
+      version="0.4.1",
       description='Siderus Peer-To-Peer Network',
       author='Lorenzo Setale',
       author_email='koalalorenzo@gmail.com',

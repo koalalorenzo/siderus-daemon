@@ -78,7 +78,7 @@ class Message(object):
 		if self.__sent_or_received: return
 		
 		port = from_addr_to_dict(self.destination)['port']
-		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #UDP
 		
 		cache = ""
 		
@@ -123,11 +123,7 @@ class Message(object):
 
 		self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		destination_dict = from_addr_to_dict(self.destination)
-
-		if not is_local_address(self.destination):
-			# If the destination is remote, send it to the Daemon
-			destination_dict['port'] = 52125 
-			
+        			
 		pieces = self.__get_list_splitted_message()
 		for pice in pieces:
 			self.socket.sendto( pice, (destination_dict['addr'], destination_dict['port']) )

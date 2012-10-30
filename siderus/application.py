@@ -7,7 +7,7 @@ from thread import start_new_thread as thread
 from siderus.message import Message
 
 from siderus.common import DAEMON_APP_NAME
-from siderus.common import DAEMON_APP_PORT
+from siderus.common import DAEMON_LOC_PORT
 from siderus.common import DEFAULT_APP_TMP_PORT
 
 from siderus.common import DAEMON_APP_CONN_REQ
@@ -38,7 +38,7 @@ class Handler(object):
 		""" This function ask the Siderus Daemon to register the app """
 		
 		self.address = from_arg_to_addr(app=self.name, port=DEFAULT_APP_TMP_PORT)
-		daemon_address = return_daemon_address("127.0.0.1")
+		daemon_address = return_daemon_address("127.0.0.1",DAEMON_LOC_PORT)
 		
 		message_ask = Message(origin=self.address, destination=daemon_address)
 		message_ask.content = {"intent": DAEMON_APP_LCCN_REQ}
