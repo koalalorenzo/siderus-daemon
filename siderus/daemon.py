@@ -438,7 +438,7 @@ class Handler(object):
 		for message in self.messages_cache:
 			message.send()
 	
-	def start(self):
+	def start(self, zeroconf=True):
 		""" This function starts the daemon in threads """
 		if self.__listening: raise Exception("Daemon Already Started")
 		self.__listening = True
@@ -446,7 +446,8 @@ class Handler(object):
 		thread(self.__connection_check_loop, () )
 		thread(self.__listen_loop, () )
 		thread(self.__listen_local_loop, () )
-		self.start_zeroconf()
+		if zeroconf:
+    		self.start_zeroconf()
 		
 	def stop(self):
 		""" This function stops the daemon threads """
