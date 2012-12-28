@@ -4,8 +4,8 @@ Siderus is project that aims to create a peer-to-peer network made by applicatio
 This project and the code is in pre-alpha and is not usable right now.
 
 ## Main Features
-* Messages are crypted and compressed!
 * It works both on IPv4 and IPv6 connections
+* Messages are crypted and compressed!
 * Siderus speaks json!
 * NAT-PMP support to "avoid" firewall automatically.
 * OpenVPN support
