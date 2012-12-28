@@ -1,17 +1,16 @@
 # Siderus
-Siderus is project that aim to create a peer-to-peer network made by applications. It works with a few libraries and a daemon to help developers to make python applications p2p without efforts.
+Siderus is project that aims to create a peer-to-peer network made by applications. It works with a few libraries and a daemon to help developers to make python applications p2p without efforts.
 
 This project and the code is in pre-alpha and is not usable right now.
 
 ## Main Features
-* It works both on IPv4 and IPv6 connections
-* NAT-PMP support to "avoid" firewall automatically.
-* Siderus speak json!
-* Encoding used is UTF-8
 * Messages are crypted and compressed!
+* It works both on IPv4 and IPv6 connections
+* Siderus speaks json!
+* NAT-PMP support to "avoid" firewall automatically.
 * OpenVPN support
 * Friend-To-Friend network support
-* Integrated cache for messages ( Siderus works off-line )
+* Integrated cache for messages ( Siderus works off-line too )
 * ...and more to come! :D 
 
 ## How it works
